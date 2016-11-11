@@ -1,0 +1,18 @@
+.leaflet-ext-search{
+    width: 100%;
+}
+.leaflet-ext-search-popup{
+    position: absolute;
+    background-color: white;
+    z-index: 1000;
+    cursor: pointer;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: initial;
+}
+
+.leaflet-ext-search-popup ul {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
