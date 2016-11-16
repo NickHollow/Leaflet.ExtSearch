@@ -235,11 +235,36 @@ let countries = [
     'Zimbabwe',
 ];
 
-let searchControl = new SearchControl(
-    document.getElementById('app'),
-    {
-        providers: [
-            new DataProvider( {values: countries, showSuggestion: true}),
-            new DataProvider({values: ['jkl','mno','pqr','stu'], showSuggestion: false}),
-        ]
-    });
+// let map = L.map('map').setView([51.505, -0.09], 13);
+
+// L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+//     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+// }).addTo(map);
+
+
+let map = L.map('map', {
+    center: new L.LatLng(55.634508, 37.433167),
+    minZoom: 3,
+    maxZoom: 17,
+    zoom: 3,
+    boxZoom: false,
+    attributionControl: false,
+    zoomControl: false,
+    squareUnit: 'km2',
+    distanceUnit: 'km'
+});
+
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+let searchControl = new SearchControl(   
+{
+    position:'topright',
+    providers: [
+        new DataProvider({values: countries, showSuggestion: true}),
+        new DataProvider({values: ['jkl','mno','pqr','stu'], showSuggestion: false}),
+    ]
+});
+
+map.addControl(searchControl);

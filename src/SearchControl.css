@@ -1,18 +1,29 @@
-.leaflet-ext-search{
-    width: 100%;
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
-.leaflet-ext-search-popup{
-    position: absolute;
-    background-color: white;
-    z-index: 1000;
+
+.leaflet-ext-search input{
+    width: 600px;
+}
+.leaflet-ext-search-list{
+    background-color: white;    
     cursor: pointer;
     max-height: 300px;
     overflow-y: auto;
     overflow-x: initial;
 }
 
-.leaflet-ext-search-popup ul {
-    list-style-type: none;
+.leaflet-ext-search-list *:focus{
+    background-color: gainsboro;
+}
+
+.leaflet-ext-search-list ul {
+    list-style-type: none;    
     margin: 0px;
-    padding: 0px;
+    padding: 0px;    
 }

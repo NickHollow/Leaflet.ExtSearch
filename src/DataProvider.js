@@ -3,9 +3,9 @@ class DataProvider {
         this._values = values;
         this.showSuggestion = showSuggestion;
     }    
-    find(value){
+    suggest(value, caseSensitive){
         return new Promise((resolve, reject) => {
-            const result = this._values.filter (x => x.startsWith (value));            
+            const result = this._values.filter (x => (caseSensitive ? x : x.toLowerCase()).startsWith (caseSensitive ? value : value.toLowerCase()));            
             resolve({request: value, response: result, target: this });                     
         });
     }
