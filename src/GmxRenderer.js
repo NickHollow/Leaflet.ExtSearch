@@ -10,8 +10,15 @@ class GmxRenderer {
     render(feature, options){
         let layer = L.GeoJSON.geometryToLayer(feature.geometry);        
         this._gmxDrawing.add(layer, options).addTo(this._map);
-        let bounds = layer.getBounds();
-        this._map.fitBounds(bounds);
+        if(feature.geometry.type === 'Point'){
+            let coords = feature.geometry.coordinates;
+            this._map.setView(L.latLng(coords[1], coords[0]), 14);            
+        }
+        else {
+            let bounds = layer.getBounds();
+            this._map.fitBounds(bounds);
+        }
+        
         this._map.invalidateSize();
     }
 }

@@ -9,7 +9,7 @@ let SearchControl = L.Control.extend({
         L.setOptions(this, options);        
     },   
     _handleChange: function(e){
-        if(this._input.value !== ''){
+        if(this._input.value.length > 2){
             Promise
             .all(this.options.providers.map(p => p.find(this._input.value)))
             .then(values => {

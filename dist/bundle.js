@@ -67,7 +67,7 @@
 	    _handleChange: function _handleChange(e) {
 	        var _this = this;
 	
-	        if (this._input.value !== '') {
+	        if (this._input.value.length > 2) {
 	            Promise.all(this.options.providers.map(function (p) {
 	                return p.find(_this._input.value);
 	            })).then(function (values) {
@@ -302,8 +302,14 @@
 	        value: function render(feature, options) {
 	            var layer = L.GeoJSON.geometryToLayer(feature.geometry);
 	            this._gmxDrawing.add(layer, options).addTo(this._map);
-	            var bounds = layer.getBounds();
-	            this._map.fitBounds(bounds);
+	            if (feature.geometry.type === 'Point') {
+	                var coords = feature.geometry.coordinates;
+	                this._map.setView(L.latLng(coords[1], coords[0]), 14);
+	            } else {
+	                var bounds = layer.getBounds();
+	                this._map.fitBounds(bounds);
+	            }
+	
 	            this._map.invalidateSize();
 	        }
 	    }]);
