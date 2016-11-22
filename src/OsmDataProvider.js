@@ -1,9 +1,11 @@
 
 class OsmDataProvider {
-    constructor({serverBase, limit}){
+    constructor({serverBase, limit, onFind}){
         this._serverBase = serverBase;
+        this._onFind = onFind;
         this._limit = limit;
-        this.showSuggestion = true;        
+        this.showSuggestion = true;
+        this.showOnMap = false;
         this.find = this.find.bind(this);
         this.fetch = this.fetch.bind(this);
         this._convertGeometry = this._convertGeometry.bind(this);
@@ -62,12 +64,19 @@ class OsmDataProvider {
                             return a;
                         }, {});
                         return {
-                            type: 'Feature',
-                            geometry: g,
-                            properties: props,
+                            feature: {
+                                type: 'Feature',
+                                geometry: g,
+                                properties: props,                            
+                            },
+                            provider: this,
+                            query: obj,
                         };
-                    });                    
-                    resolve({request: obj, items: rs, provider: this});
+                    });
+                    if (typeof this._onFind === 'function'){
+                        this._onFind(rs);
+                    }                
+                    resolve(rs);
                 }
                 else {
                     reject(json);
@@ -93,8 +102,21 @@ class OsmDataProvider {
             .then(text => {
                 const json = JSON.parse (text.slice(1, text.length - 1));
                 if(json.Status === 'ok'){
-                    const rs = json.Result.reduce((a,x) => a.concat(x.SearchResult), []); 
-                    resolve({request: value, items: rs, provider: this});
+                    const rs = 
+                        json.Result
+                        .reduce((a,x) => a.concat(x.SearchResult), [])
+                        .map(x => {
+                            return {
+                                name: x.ObjNameShort,
+                                properties: x,
+                                provider: this,
+                                query: text,
+                            };
+                        });
+                    if (typeof this._onFind === 'function'){
+                        this._onFind(rs);
+                    }
+                    resolve(rs);
                 }
                 else {
                     reject(json);

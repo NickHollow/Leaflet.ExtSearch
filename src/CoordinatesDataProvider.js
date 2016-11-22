@@ -1,0 +1,56 @@
+
+class CoordinatesDataProvider {
+    constructor({onFind}){
+        this._onFind = onFind;
+        this.showSuggestion = false;
+        this.showOnMap = true;
+        this.fetch = this.fetch.bind(this);
+        this.find = this.find.bind(this);
+        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');
+        this.rxLng = new RegExp('(\\d+\\.?\\d+)\\s*(E|W)');
+    }
+    _parseCoordinates(value) {
+        let coords = value.split(/(,|\\s+)/)
+        .reduce((a,x) => {
+            const lat = this.rxLat.exec(x);
+            if(lat && lat.length) {
+                a.lat = parseFloat(lat[1]);
+                if (lat[2] == 'S'){
+                    a.lat = -a.lat;
+                }
+            }
+            const lng = this.rxLng.exec(x);
+            if(lng && lng.length) {
+                a.lng = parseFloat(lng[1]);
+                if (lng[2] == 'W'){
+                    a.lng = -a.lng;
+                }
+            }
+            return a;
+        },{});
+        if (coords.hasOwnProperty('lat') && coords.hasOwnProperty('lng')){
+            return {type: 'Point', coordinates: [coords.lng, coords.lat]};
+        }
+        else {
+            return null;
+        }
+    }
+    fetch (value){
+        let g = this._parseCoordinates(value);        
+        return new Promise(resolve => {
+            let result = {feature: { type: 'Feature', geometry: g, properties: {} }, provider: this, query: value};
+            if (typeof this._onFetch === 'function'){
+                this._onFind(result);
+            }             
+            resolve(g ? [result] : []);
+        });
+    }
+    find (value){
+        return new Promise(resolve => resolve([]));
+    }
+}
+
+window.nsGmx = window.nsGmx || {};
+window.nsGmx.CoordinatesDataProvider = CoordinatesDataProvider;
+
+export { CoordinatesDataProvider };

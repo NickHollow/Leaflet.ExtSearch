@@ -10,7 +10,7 @@
 @media (max-width: 1680px) {
     .leaflet-ext-search input, .leaflet-ext-search-list {
         width: 1024px;
-    }    
+    }
 }
 
 
@@ -22,7 +22,7 @@
     overflow-x: initial;
 }
 
-.leaflet-ext-search-list *:focus{
+.leaflet-ext-search-list-selected{
     background-color: gainsboro;
 }
 

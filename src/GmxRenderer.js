@@ -7,19 +7,19 @@ class GmxRenderer {
         this._gmxDrawing = new L.GmxDrawing ();
         this._gmxDrawing.initialize(map);        
     }
-    render(feature, options){
-        let layer = L.GeoJSON.geometryToLayer(feature.geometry);        
-        this._gmxDrawing.add(layer, options).addTo(this._map);
-        if(feature.geometry.type === 'Point'){
-            let coords = feature.geometry.coordinates;
-            this._map.setView(L.latLng(coords[1], coords[0]), 14);            
-        }
-        else {
-            let bounds = layer.getBounds();
+    render(features, style){
+        if(features && features.length){
+            let json = features
+            .reduce ((a,feature) => {
+                let layer = L.GeoJSON.geometryToLayer(feature.geometry);        
+                this._gmxDrawing.add(layer, style).addTo(this._map);
+                a.addData(feature.geometry);
+                return a;
+            }, L.geoJson());
+            let bounds = json.getBounds();
             this._map.fitBounds(bounds);
+            this._map.invalidateSize();
         }
-        
-        this._map.invalidateSize();
     }
 }
 

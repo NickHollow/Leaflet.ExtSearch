@@ -59,50 +59,93 @@
 	
 	var _OsmDataProvider = __webpack_require__(10);
 	
+	var _CoordinatesDataProvider = __webpack_require__(11);
+	
+	var _CadastreDataProvider = __webpack_require__(12);
+	
 	var SearchControl = L.Control.extend({
 	    includes: [L.Mixin.Events],
 	    initialize: function initialize(options) {
 	        L.setOptions(this, options);
 	    },
+	    _chain: function _chain(tasks, state) {
+	        return tasks.reduce(function (prev, next) {
+	            return prev.then(next);
+	        }, new Promise(function (resolve, reject) {
+	            return resolve(state);
+	        }));
+	    },
+	
 	    _handleChange: function _handleChange(e) {
 	        var _this = this;
 	
-	        if (this._input.value.length > 2) {
-	            Promise.all(this.options.providers.map(function (p) {
-	                return p.find(_this._input.value);
-	            })).then(function (values) {
-	                var entries = values.filter(function (x) {
-	                    return x.provider.showSuggestion;
-	                });
-	                _this.results.show(entries);
+	        var text = this._input.value;
+	        if (text.length) {
+	
+	            var tasks = this.options.providers.map(function (provider) {
+	                return function (state) {
+	                    return new Promise(function (resolve) {
+	                        if (_this.options.showFirst && state.completed) {
+	                            resolve(state);
+	                        } else {
+	                            var p = provider.showSuggestion ? provider.find(text) : provider.fetch(text);
+	                            p.then(function (response) {
+	                                state.completed = _this.options.showFirst && response.length;
+	                                state.response = state.response.concat(response);
+	                                resolve(state);
+	                            });
+	                        }
+	                    });
+	                };
 	            });
+	
+	            this._chain(tasks, { completed: false, response: [] }).then(function (state) {
+	                var features = state.response.filter(function (x) {
+	                    return x.provider.showOnMap;
+	                }).map(function (x) {
+	                    return x.feature;
+	                });
+	                _this._renderer.render(features, _this.options.style);
+	
+	                if (features.length == 0) {
+	                    var entries = state.response.filter(function (x) {
+	                        return x.provider.showSuggestion;
+	                    });
+	                    _this.results.show(entries);
+	                }
+	            });
+	
+	            // Promise
+	            // .all(this.options.providers.map(p => {
+	            //     return p.showSuggestion ? p.find(this._input.value) : p.fetch(this._input.value);
+	            // }))
+	            // .then(values => {                
+	            //     const features = values
+	            //     .filter(x => !x.provider.showSuggestion)
+	            //     .reduce((a,x) => {
+	            //         return a.concat(x.items);
+	            //     },[]);
+	            //     this._renderer.render(features, this.options.style);
+	
+	            //     if(features.length == 0){
+	            //         const entries = values.filter(x => x.provider.showSuggestion);
+	            //         this.results.show(entries);
+	            //     }
+	            // });
 	        }
 	    },
 	    _handleMouseMove: function _handleMouseMove(e) {
 	        e.stopPropagation();
 	    },
-	    _selectItem: function _selectItem(e) {
+	    _selectItem: function _selectItem(item) {
 	        var _this2 = this;
 	
-	        var renderOptions = {
-	            editable: false,
-	            map: true,
-	            pointStyle: {
-	                size: 8,
-	                weight: 1,
-	                opacity: 1,
-	                color: '#00008B'
-	            },
-	            lineStyle: {
-	                fill: false,
-	                weight: 2,
-	                opacity: 1,
-	                color: '#00008B'
-	            }
-	        };
-	        e.detail.provider.fetch(e.detail.properties).then(function (response) {
-	            if (response.items.length > 0) {
-	                _this2._renderer.render(response.items[0], renderOptions);
+	        item.provider.fetch(item.properties).then(function (response) {
+	            var features = response.map(function (x) {
+	                return x.feature;
+	            });
+	            if (features.length) {
+	                _this2._renderer.render(features, _this2.options.style);
 	            }
 	        });
 	    },
@@ -111,11 +154,20 @@
 	        this._container.innerHTML = '<input type="text" value="" />';
 	        this._input = this._container.querySelector('input');
 	
-	        L.DomEvent.on(this._input, 'input', this._handleChange.bind(this));
-	        L.DomEvent.on(this._input, 'mousemove', this._handleMouseMove.bind(this));
+	        // const style = getComputedStyle (map._container);
+	        // const matches = (/\d+/g).exec (style.width);
+	        // if(matches && matches.length){
+	        //     const width = Number.parseInt (matches[0]) - 50;
+	        //     this._input.style.width = `${width}px`;
+	        // }
 	
-	        this.results = new _ResultView.ResultView({ input: this._input });
-	        document.addEventListener('item:select', this._selectItem.bind(this));
+	        this._input.addEventListener('input', this._handleChange.bind(this));
+	        this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
+	
+	        this.results = new _ResultView.ResultView({
+	            input: this._input,
+	            onSelect: this._selectItem.bind(this)
+	        });
 	
 	        this._renderer = this.options.renderer || new _GmxRenderer.GmxRenderer(map);
 	
@@ -153,11 +205,13 @@
 	
 	var ResultView = function () {
 	    function ResultView(_ref) {
-	        var input = _ref.input;
+	        var input = _ref.input,
+	            onSelect = _ref.onSelect;
 	
 	        _classCallCheck(this, ResultView);
 	
 	        this._input = input;
+	        this._onSelect = onSelect;
 	        this.index = -1;
 	        this.count = 0;
 	        this._item = null;
@@ -167,40 +221,52 @@
 	
 	        this._list.style.top = this._input.offsetTop + this._input.offsetHeight + 2 + 'px';
 	        this._list.style.left = this._input.offsetLeft + 'px';
-	        this._input.addEventListener('keydown', this.handleKey.bind(this));
-	        this._list.addEventListener('keydown', this.handleKey.bind(this));
-	        this._list.addEventListener('wheel', this.handleWheel.bind(this));
+	        this._input.addEventListener('keydown', this._handleKey.bind(this));
+	        this._list.addEventListener('keydown', this._handleKey.bind(this));
+	        this._list.addEventListener('wheel', this._handleWheel.bind(this));
+	        this._list.addEventListener('mousemove', this._handleWheel.bind(this));
 	        this._input.parentElement.appendChild(this._list);
 	    }
 	
 	    _createClass(ResultView, [{
-	        key: 'handleWheel',
-	        value: function handleWheel(e) {
+	        key: '_handleWheel',
+	        value: function _handleWheel(e) {
 	            e.stopPropagation();
 	        }
 	    }, {
-	        key: 'handleKey',
-	        value: function handleKey(e) {
+	        key: '_handleMouseMove',
+	        value: function _handleMouseMove(e) {
+	            e.stopPropagation();
+	        }
+	    }, {
+	        key: '_handleKey',
+	        value: function _handleKey(e) {
 	            if (e.key === 'ArrowDown') {
 	                e.preventDefault();
 	                if (this.index < 0) {
 	                    this.index = 0;
 	                } else if (0 <= this.index && this.index < this.count - 1) {
+	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
 	                    ++this.index;
 	                } else {
+	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
 	                    this.index = this.count - 1;
 	                }
-	                var item = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                item.focus();
+	                L.DomUtil.addClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
+	                this.selectItem(this.index);
 	            } else if (e.key === 'ArrowUp') {
 	                e.preventDefault();
 	                if (this.index > 0) {
+	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
 	                    --this.index;
-	                    var _item = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                    _item.focus();
+	                    L.DomUtil.addClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
+	                    this.selectItem(this.index);
 	                } else {
+	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
 	                    this.index = -1;
 	                    this._input.focus();
+	                    this._item = null;
+	                    this._input.value = '';
 	                }
 	            } else if (e.key === 'Enter') {
 	                this.complete(this.index);
@@ -208,53 +274,52 @@
 	        }
 	    }, {
 	        key: 'selectItem',
-	        value: function selectItem(i, e) {
+	        value: function selectItem(i) {
 	            this._item = this._items[i];
-	            var text = this._item.properties.ObjName;
+	            var text = this._item.name;
 	            this._input.value = text;
 	            this._input.setSelectionRange(text.length, text.length);
 	        }
 	    }, {
+	        key: '_handleClick',
+	        value: function _handleClick(i, e) {
+	            e.preventDefault();
+	            this.complete(i);
+	        }
+	    }, {
 	        key: 'complete',
-	        value: function complete(i, e) {
+	        value: function complete(i) {
 	            var item = i >= 0 ? this._items[i] : this._item ? this._item : null;
 	            if (item) {
 	                this._item = item;
 	                this.index = -1;
-	                var text = item.properties.ObjName;
+	                var text = item.name;
 	                this._input.value = text;
 	                this._input.setSelectionRange(text.length, text.length);
 	                this._input.focus();
 	                this.hide();
-	                var event = new CustomEvent('item:select', { detail: item, bubbles: true, cancelable: true });
-	                document.dispatchEvent(event);
+	                if (typeof this._onSelect === 'function') {
+	                    this._onSelect(item);
+	                }
 	            }
 	        }
 	    }, {
 	        key: 'show',
-	        value: function show(entries) {
+	        value: function show(items) {
 	            this._item = null;
 	            this.index = -1;
-	
-	            this._items = entries.reduce(function (a, x) {
-	                var items = x.items.map(function (z) {
-	                    return { provider: x.provider, properties: z };
-	                });
-	                return a.concat(items);
-	            }, []);
+	            this._items = items;
 	            var html = '<ul>' + this._items.map(function (x, i) {
-	                return '<li tabindex=' + i + '>' + x.properties.ObjNameShort + '</li>';
+	                return '<li tabindex=' + i + '>' + x.name + '</li>';
 	            }, []).join('') + '</ul>';
 	
 	            this._list.innerHTML = html;
-	            var items = this._list.querySelectorAll('li');
-	            for (var i = 0; i < items.length; ++i) {
-	                var item = items[i];
-	                item.addEventListener('click', this.complete.bind(this, i));
-	                item.addEventListener('focus', this.selectItem.bind(this, i));
+	            var elements = this._list.querySelectorAll('li');
+	            for (var i = 0; i < elements.length; ++i) {
+	                elements[i].addEventListener('click', this._handleClick.bind(this, i));
 	            }
 	
-	            this.count = items.length;
+	            this.count = elements.length;
 	            this._list.style.display = 'block';
 	        }
 	    }, {
@@ -299,18 +364,20 @@
 	
 	    _createClass(GmxRenderer, [{
 	        key: 'render',
-	        value: function render(feature, options) {
-	            var layer = L.GeoJSON.geometryToLayer(feature.geometry);
-	            this._gmxDrawing.add(layer, options).addTo(this._map);
-	            if (feature.geometry.type === 'Point') {
-	                var coords = feature.geometry.coordinates;
-	                this._map.setView(L.latLng(coords[1], coords[0]), 14);
-	            } else {
-	                var bounds = layer.getBounds();
-	                this._map.fitBounds(bounds);
-	            }
+	        value: function render(features, style) {
+	            var _this = this;
 	
-	            this._map.invalidateSize();
+	            if (features && features.length) {
+	                var json = features.reduce(function (a, feature) {
+	                    var layer = L.GeoJSON.geometryToLayer(feature.geometry);
+	                    _this._gmxDrawing.add(layer, style).addTo(_this._map);
+	                    a.addData(feature.geometry);
+	                    return a;
+	                }, L.geoJson());
+	                var bounds = json.getBounds();
+	                this._map.fitBounds(bounds);
+	                this._map.invalidateSize();
+	            }
 	        }
 	    }]);
 	
@@ -888,13 +955,16 @@
 	var OsmDataProvider = function () {
 	    function OsmDataProvider(_ref) {
 	        var serverBase = _ref.serverBase,
-	            limit = _ref.limit;
+	            limit = _ref.limit,
+	            onFind = _ref.onFind;
 	
 	        _classCallCheck(this, OsmDataProvider);
 	
 	        this._serverBase = serverBase;
+	        this._onFind = onFind;
 	        this._limit = limit;
 	        this.showSuggestion = true;
+	        this.showOnMap = false;
 	        this.find = this.find.bind(this);
 	        this.fetch = this.fetch.bind(this);
 	        this._convertGeometry = this._convertGeometry.bind(this);
@@ -968,12 +1038,19 @@
 	                                return a;
 	                            }, {});
 	                            return {
-	                                type: 'Feature',
-	                                geometry: g,
-	                                properties: props
+	                                feature: {
+	                                    type: 'Feature',
+	                                    geometry: g,
+	                                    properties: props
+	                                },
+	                                provider: _this,
+	                                query: obj
 	                            };
 	                        });
-	                        resolve({ request: obj, items: rs, provider: _this });
+	                        if (typeof _this._onFind === 'function') {
+	                            _this._onFind(rs);
+	                        }
+	                        resolve(rs);
 	                    } else {
 	                        reject(json);
 	                    }
@@ -1002,8 +1079,18 @@
 	                    if (json.Status === 'ok') {
 	                        var rs = json.Result.reduce(function (a, x) {
 	                            return a.concat(x.SearchResult);
-	                        }, []);
-	                        resolve({ request: value, items: rs, provider: _this2 });
+	                        }, []).map(function (x) {
+	                            return {
+	                                name: x.ObjNameShort,
+	                                properties: x,
+	                                provider: _this2,
+	                                query: text
+	                            };
+	                        });
+	                        if (typeof _this2._onFind === 'function') {
+	                            _this2._onFind(rs);
+	                        }
+	                        resolve(rs);
 	                    } else {
 	                        reject(json);
 	                    }
@@ -1019,6 +1106,239 @@
 	window.nsGmx.OsmDataProvider = OsmDataProvider;
 	
 	exports.OsmDataProvider = OsmDataProvider;
+
+/***/ },
+/* 11 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var CoordinatesDataProvider = function () {
+	    function CoordinatesDataProvider(_ref) {
+	        var onFind = _ref.onFind;
+	
+	        _classCallCheck(this, CoordinatesDataProvider);
+	
+	        this._onFind = onFind;
+	        this.showSuggestion = false;
+	        this.showOnMap = true;
+	        this.fetch = this.fetch.bind(this);
+	        this.find = this.find.bind(this);
+	        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');
+	        this.rxLng = new RegExp('(\\d+\\.?\\d+)\\s*(E|W)');
+	    }
+	
+	    _createClass(CoordinatesDataProvider, [{
+	        key: '_parseCoordinates',
+	        value: function _parseCoordinates(value) {
+	            var _this = this;
+	
+	            var coords = value.split(/(,|\\s+)/).reduce(function (a, x) {
+	                var lat = _this.rxLat.exec(x);
+	                if (lat && lat.length) {
+	                    a.lat = parseFloat(lat[1]);
+	                    if (lat[2] == 'S') {
+	                        a.lat = -a.lat;
+	                    }
+	                }
+	                var lng = _this.rxLng.exec(x);
+	                if (lng && lng.length) {
+	                    a.lng = parseFloat(lng[1]);
+	                    if (lng[2] == 'W') {
+	                        a.lng = -a.lng;
+	                    }
+	                }
+	                return a;
+	            }, {});
+	            if (coords.hasOwnProperty('lat') && coords.hasOwnProperty('lng')) {
+	                return { type: 'Point', coordinates: [coords.lng, coords.lat] };
+	            } else {
+	                return null;
+	            }
+	        }
+	    }, {
+	        key: 'fetch',
+	        value: function fetch(value) {
+	            var _this2 = this;
+	
+	            var g = this._parseCoordinates(value);
+	            return new Promise(function (resolve) {
+	                var result = { feature: { type: 'Feature', geometry: g, properties: {} }, provider: _this2, query: value };
+	                if (typeof _this2._onFetch === 'function') {
+	                    _this2._onFind(result);
+	                }
+	                resolve(g ? [result] : []);
+	            });
+	        }
+	    }, {
+	        key: 'find',
+	        value: function find(value) {
+	            return new Promise(function (resolve) {
+	                return resolve([]);
+	            });
+	        }
+	    }]);
+	
+	    return CoordinatesDataProvider;
+	}();
+	
+	window.nsGmx = window.nsGmx || {};
+	window.nsGmx.CoordinatesDataProvider = CoordinatesDataProvider;
+	
+	exports.CoordinatesDataProvider = CoordinatesDataProvider;
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var CadastreDataProvider = function () {
+	    function CadastreDataProvider(_ref) {
+	        var serverBase = _ref.serverBase,
+	            onFind = _ref.onFind;
+	
+	        _classCallCheck(this, CadastreDataProvider);
+	
+	        this._serverBase = serverBase;
+	        this._onFind = onFind;
+	        this.showSuggestion = false;
+	        this.showOnMap = false;
+	        this._cadastreLayers = [{ id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
+	        // ,
+	        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+	        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+	        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+	        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+	        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+	        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+	        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+	        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+	        // /[^\d\:]/g,
+	        // /\d\d:\d+$/,
+	        // /\d\d:\d+:\d+$/,
+	        // /\d\d:\d+:\d+:\d+$/
+	        ];
+	    }
+	
+	    _createClass(CadastreDataProvider, [{
+	        key: 'getCadastreLayer',
+	        value: function getCadastreLayer(str, type) {
+	            str = str.trim();
+	            for (var i = 0, len = this._cadastreLayers.length; i < len; i++) {
+	                var it = this._cadastreLayers[i];
+	                if (it.id === type) {
+	                    return it;
+	                }
+	                if (it.reg.exec(str)) {
+	                    return it;
+	                }
+	            }
+	            return null;
+	        }
+	    }, {
+	        key: 'find',
+	        value: function find(text) {
+	            var _this = this;
+	
+	            var cadastreLayer = this.getCadastreLayer(text);
+	            return new Promise(function (resolve) {
+	                if (cadastreLayer) {
+	                    var req = new Request(_this._serverBase + '/' + cadastreLayer.id + '/' + text);
+	                    var headers = new Headers();
+	                    headers.append('Content-Type', 'application/json');
+	                    var init = {
+	                        method: 'GET',
+	                        mode: 'cors',
+	                        cache: 'default'
+	                    };
+	                    fetch(req, init).then(function (response) {
+	                        return response.text();
+	                    }).then(function (text) {
+	                        var json = JSON.parse(text);
+	                        resolve([]);
+	                    });
+	                } else {
+	                    resolve([]);
+	                }
+	            });
+	        }
+	    }, {
+	        key: 'fetch',
+	        value: function (_fetch) {
+	            function fetch(_x) {
+	                return _fetch.apply(this, arguments);
+	            }
+	
+	            fetch.toString = function () {
+	                return _fetch.toString();
+	            };
+	
+	            return fetch;
+	        }(function (text) {
+	            var _this2 = this;
+	
+	            var cadastreLayer = this.getCadastreLayer(text);
+	            return new Promise(function (resolve) {
+	                if (cadastreLayer) {
+	                    var req = new Request(_this2._serverBase + '/' + cadastreLayer.id + '/' + text);
+	                    var headers = new Headers();
+	                    headers.append('Content-Type', 'application/json');
+	                    var init = {
+	                        method: 'GET',
+	                        mode: 'cors',
+	                        cache: 'default'
+	                    };
+	                    fetch(req, init).then(function (response) {
+	                        return response.text();
+	                    }).then(function (text) {
+	                        var json = JSON.parse(text);
+	                        if (json.status === 200) {
+	                            if (typeof _this2._onFind === 'function') {
+	                                _this2._onFind(json);
+	                            }
+	
+	                            var rs = {
+	                                name: json.feature.attrs.id,
+	                                properties: json,
+	                                provider: _this2,
+	                                query: text
+	                            };
+	                            resolve([rs]);
+	                        } else {
+	                            resolve(json);
+	                        }
+	                    });
+	                } else {
+	                    resolve([]);
+	                }
+	            });
+	        })
+	    }]);
+	
+	    return CadastreDataProvider;
+	}();
+	
+	window.nsGmx = window.nsGmx || {};
+	window.nsGmx.CadastreDataProvider = CadastreDataProvider;
+	
+	exports.CadastreDataProvider = CadastreDataProvider;
 
 /***/ }
 /******/ ]);
