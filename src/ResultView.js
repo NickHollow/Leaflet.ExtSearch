@@ -5,7 +5,7 @@ class ResultView {
         this.index = -1;
         this.count = 0;
         this._item = null;
-
+        this._inputText = '';
         this._list = L.DomUtil.create('div');
         this._list.setAttribute('class', 'leaflet-ext-search-list noselect');        
 
@@ -14,8 +14,13 @@ class ResultView {
         this._input.addEventListener('keydown', this._handleKey.bind(this));
         this._list.addEventListener('keydown', this._handleKey.bind(this));
         this._list.addEventListener('wheel', this._handleWheel.bind(this));
-        this._list.addEventListener('mousemove', this._handleWheel.bind(this));
-        this._input.parentElement.appendChild(this._list);        
+        // this._list.addEventListener('mousemove', this._handleWheel.bind(this));
+        this._input.parentElement.appendChild(this._list); 
+        this._input.addEventListener('input', this._handleChange.bind(this));      
+    }   
+
+    _handleChange(e){
+        this._inputText = this._input.value;
     }
 
     _handleWheel (e) {
@@ -26,43 +31,56 @@ class ResultView {
         e.stopPropagation();
     }
 
-    _handleKey(e){                         
-        if(e.key === 'ArrowDown'){
-            e.preventDefault();            
-            if (this.index < 0){
-                this.index = 0;
+    _handleKey(e){
+        if(this.listVisible()) {
+            if(e.key === 'ArrowDown'){            
+                e.preventDefault();                 
+                if (this.index < 0){
+                    this.index = 0;
+                }
+                else if (0 <= this.index && this.index < this.count - 1){
+                    let el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                    ++this.index;
+                }   
+                else {
+                    let el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                    this.index = this.count - 1;
+                }
+                let el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected'); 
+                this.selectItem(this.index);
+                el.focus();          
             }
-            else if (0 <= this.index && this.index < this.count - 1){
-                L.DomUtil.removeClass (this._list.querySelector(`[tabindex="${this.index}"]`), 'leaflet-ext-search-list-selected');
-                ++this.index;
+            else if (e.key === 'ArrowUp'){
+                e.preventDefault();            
+                if(this.index > 0){
+                    let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
+                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                    --this.index;
+                    el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                    L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected');
+                    this.selectItem(this.index);
+                    el.focus();            
+                }
+                else if (this.index === 0) {
+                    let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
+                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                    this.index = -1;
+                    this._input.focus();                
+                    this._input.value = this._inputText;
+                    this._item = null;
+                }            
+            }
+            else if (e.key === 'Enter'){
+                this.complete (this.index);            
+            }  
+        }                                                
+    }
 
-            }   
-            else {
-                L.DomUtil.removeClass (this._list.querySelector(`[tabindex="${this.index}"]`), 'leaflet-ext-search-list-selected');
-                this.index = this.count - 1;
-            }
-            L.DomUtil.addClass (this._list.querySelector(`[tabindex="${this.index}"]`), 'leaflet-ext-search-list-selected'); 
-            this.selectItem(this.index);
-        }
-        else if (e.key === 'ArrowUp'){
-            e.preventDefault();            
-            if(this.index > 0){
-                L.DomUtil.removeClass (this._list.querySelector(`[tabindex="${this.index}"]`), 'leaflet-ext-search-list-selected');
-                --this.index;                
-                L.DomUtil.addClass (this._list.querySelector(`[tabindex="${this.index}"]`), 'leaflet-ext-search-list-selected');
-                this.selectItem(this.index);                                             
-            }
-            else {
-                L.DomUtil.removeClass (this._list.querySelector(`[tabindex="${this.index}"]`), 'leaflet-ext-search-list-selected');
-                this.index = -1;
-                this._input.focus();
-                this._item = null;
-                this._input.value = '';                
-            }            
-        }
-        else if (e.key === 'Enter'){
-            this.complete (this.index);            
-        }    
+    listVisible(){
+        return this.count > 0 && this._list.style.display !== 'none';
     }
 
     selectItem(i){        

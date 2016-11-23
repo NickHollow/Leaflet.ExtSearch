@@ -75,10 +75,10 @@ let SearchControl = L.Control.extend({
         item.provider
         .fetch(item.properties)
         .then(response => {
-            let features = response.map (x => x.feature);
-            if(features.length){
-                this._renderer.render(features, this.options.style);
-            }
+            if (item.provider.showOnMap && response.length) {
+                let features = response.map (x => x.feature);
+                this._renderer.render(features, this.options.style);                
+            }            
         });
     },
     onAdd: function(map) {

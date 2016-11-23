@@ -1,8 +1,8 @@
 
 class OsmDataProvider {
-    constructor({serverBase, limit, onFind}){
+    constructor({serverBase, limit, onFetch}){
         this._serverBase = serverBase;
-        this._onFind = onFind;
+        this._onFetch = onFetch;
         this._limit = limit;
         this.showSuggestion = true;
         this.showOnMap = false;
@@ -73,8 +73,8 @@ class OsmDataProvider {
                             query: obj,
                         };
                     });
-                    if (typeof this._onFind === 'function'){
-                        this._onFind(rs);
+                    if (typeof this._onFetch === 'function'){
+                        this._onFetch(rs);
                     }                
                     resolve(rs);
                 }
@@ -110,12 +110,9 @@ class OsmDataProvider {
                                 name: x.ObjNameShort,
                                 properties: x,
                                 provider: this,
-                                query: text,
+                                query: value,
                             };
-                        });
-                    if (typeof this._onFind === 'function'){
-                        this._onFind(rs);
-                    }
+                        });                 
                     resolve(rs);
                 }
                 else {

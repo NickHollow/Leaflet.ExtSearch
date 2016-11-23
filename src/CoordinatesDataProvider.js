@@ -1,7 +1,7 @@
 
 class CoordinatesDataProvider {
-    constructor({onFind}){
-        this._onFind = onFind;
+    constructor({onFetch}){
+        this._onFetch = onFetch;
         this.showSuggestion = false;
         this.showOnMap = true;
         this.fetch = this.fetch.bind(this);
@@ -40,7 +40,7 @@ class CoordinatesDataProvider {
         return new Promise(resolve => {
             let result = {feature: { type: 'Feature', geometry: g, properties: {} }, provider: this, query: value};
             if (typeof this._onFetch === 'function'){
-                this._onFind(result);
+                this._onFetch(result);
             }             
             resolve(g ? [result] : []);
         });

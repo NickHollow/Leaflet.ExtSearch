@@ -141,10 +141,10 @@
 	        var _this2 = this;
 	
 	        item.provider.fetch(item.properties).then(function (response) {
-	            var features = response.map(function (x) {
-	                return x.feature;
-	            });
-	            if (features.length) {
+	            if (item.provider.showOnMap && response.length) {
+	                var features = response.map(function (x) {
+	                    return x.feature;
+	                });
 	                _this2._renderer.render(features, _this2.options.style);
 	            }
 	        });
@@ -215,7 +215,7 @@
 	        this.index = -1;
 	        this.count = 0;
 	        this._item = null;
-	
+	        this._inputText = '';
 	        this._list = L.DomUtil.create('div');
 	        this._list.setAttribute('class', 'leaflet-ext-search-list noselect');
 	
@@ -224,11 +224,17 @@
 	        this._input.addEventListener('keydown', this._handleKey.bind(this));
 	        this._list.addEventListener('keydown', this._handleKey.bind(this));
 	        this._list.addEventListener('wheel', this._handleWheel.bind(this));
-	        this._list.addEventListener('mousemove', this._handleWheel.bind(this));
+	        // this._list.addEventListener('mousemove', this._handleWheel.bind(this));
 	        this._input.parentElement.appendChild(this._list);
+	        this._input.addEventListener('input', this._handleChange.bind(this));
 	    }
 	
 	    _createClass(ResultView, [{
+	        key: '_handleChange',
+	        value: function _handleChange(e) {
+	            this._inputText = this._input.value;
+	        }
+	    }, {
 	        key: '_handleWheel',
 	        value: function _handleWheel(e) {
 	            e.stopPropagation();
@@ -241,36 +247,51 @@
 	    }, {
 	        key: '_handleKey',
 	        value: function _handleKey(e) {
-	            if (e.key === 'ArrowDown') {
-	                e.preventDefault();
-	                if (this.index < 0) {
-	                    this.index = 0;
-	                } else if (0 <= this.index && this.index < this.count - 1) {
-	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
-	                    ++this.index;
-	                } else {
-	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
-	                    this.index = this.count - 1;
-	                }
-	                L.DomUtil.addClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
-	                this.selectItem(this.index);
-	            } else if (e.key === 'ArrowUp') {
-	                e.preventDefault();
-	                if (this.index > 0) {
-	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
-	                    --this.index;
-	                    L.DomUtil.addClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
+	            if (this.listVisible()) {
+	                if (e.key === 'ArrowDown') {
+	                    e.preventDefault();
+	                    if (this.index < 0) {
+	                        this.index = 0;
+	                    } else if (0 <= this.index && this.index < this.count - 1) {
+	                        var _el = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                        L.DomUtil.removeClass(_el, 'leaflet-ext-search-list-selected');
+	                        ++this.index;
+	                    } else {
+	                        var _el2 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                        L.DomUtil.removeClass(_el2, 'leaflet-ext-search-list-selected');
+	                        this.index = this.count - 1;
+	                    }
+	                    var el = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                    L.DomUtil.addClass(el, 'leaflet-ext-search-list-selected');
 	                    this.selectItem(this.index);
-	                } else {
-	                    L.DomUtil.removeClass(this._list.querySelector('[tabindex="' + this.index + '"]'), 'leaflet-ext-search-list-selected');
-	                    this.index = -1;
-	                    this._input.focus();
-	                    this._item = null;
-	                    this._input.value = '';
+	                    el.focus();
+	                } else if (e.key === 'ArrowUp') {
+	                    e.preventDefault();
+	                    if (this.index > 0) {
+	                        var _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                        L.DomUtil.removeClass(_el3, 'leaflet-ext-search-list-selected');
+	                        --this.index;
+	                        _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                        L.DomUtil.addClass(_el3, 'leaflet-ext-search-list-selected');
+	                        this.selectItem(this.index);
+	                        _el3.focus();
+	                    } else if (this.index === 0) {
+	                        var _el4 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                        L.DomUtil.removeClass(_el4, 'leaflet-ext-search-list-selected');
+	                        this.index = -1;
+	                        this._input.focus();
+	                        this._input.value = this._inputText;
+	                        this._item = null;
+	                    }
+	                } else if (e.key === 'Enter') {
+	                    this.complete(this.index);
 	                }
-	            } else if (e.key === 'Enter') {
-	                this.complete(this.index);
 	            }
+	        }
+	    }, {
+	        key: 'listVisible',
+	        value: function listVisible() {
+	            return this.count > 0 && this._list.style.display !== 'none';
 	        }
 	    }, {
 	        key: 'selectItem',
@@ -956,12 +977,12 @@
 	    function OsmDataProvider(_ref) {
 	        var serverBase = _ref.serverBase,
 	            limit = _ref.limit,
-	            onFind = _ref.onFind;
+	            onFetch = _ref.onFetch;
 	
 	        _classCallCheck(this, OsmDataProvider);
 	
 	        this._serverBase = serverBase;
-	        this._onFind = onFind;
+	        this._onFetch = onFetch;
 	        this._limit = limit;
 	        this.showSuggestion = true;
 	        this.showOnMap = false;
@@ -1047,8 +1068,8 @@
 	                                query: obj
 	                            };
 	                        });
-	                        if (typeof _this._onFind === 'function') {
-	                            _this._onFind(rs);
+	                        if (typeof _this._onFetch === 'function') {
+	                            _this._onFetch(rs);
 	                        }
 	                        resolve(rs);
 	                    } else {
@@ -1084,12 +1105,9 @@
 	                                name: x.ObjNameShort,
 	                                properties: x,
 	                                provider: _this2,
-	                                query: text
+	                                query: value
 	                            };
 	                        });
-	                        if (typeof _this2._onFind === 'function') {
-	                            _this2._onFind(rs);
-	                        }
 	                        resolve(rs);
 	                    } else {
 	                        reject(json);
@@ -1123,11 +1141,11 @@
 	
 	var CoordinatesDataProvider = function () {
 	    function CoordinatesDataProvider(_ref) {
-	        var onFind = _ref.onFind;
+	        var onFetch = _ref.onFetch;
 	
 	        _classCallCheck(this, CoordinatesDataProvider);
 	
-	        this._onFind = onFind;
+	        this._onFetch = onFetch;
 	        this.showSuggestion = false;
 	        this.showOnMap = true;
 	        this.fetch = this.fetch.bind(this);
@@ -1173,7 +1191,7 @@
 	            return new Promise(function (resolve) {
 	                var result = { feature: { type: 'Feature', geometry: g, properties: {} }, provider: _this2, query: value };
 	                if (typeof _this2._onFetch === 'function') {
-	                    _this2._onFind(result);
+	                    _this2._onFetch(result);
 	                }
 	                resolve(g ? [result] : []);
 	            });
@@ -1212,13 +1230,17 @@
 	var CadastreDataProvider = function () {
 	    function CadastreDataProvider(_ref) {
 	        var serverBase = _ref.serverBase,
-	            onFind = _ref.onFind;
+	            limit = _ref.limit,
+	            tolerance = _ref.tolerance,
+	            onFetch = _ref.onFetch;
 	
 	        _classCallCheck(this, CadastreDataProvider);
 	
 	        this._serverBase = serverBase;
-	        this._onFind = onFind;
-	        this.showSuggestion = false;
+	        this._limit = limit;
+	        this._tolerance = tolerance;
+	        this._onFetch = onFetch;
+	        this.showSuggestion = true;
 	        this.showOnMap = false;
 	        this._cadastreLayers = [{ id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
 	        // ,
@@ -1257,26 +1279,33 @@
 	        value: function find(text) {
 	            var _this = this;
 	
-	            var cadastreLayer = this.getCadastreLayer(text);
 	            return new Promise(function (resolve) {
-	                if (cadastreLayer) {
-	                    var req = new Request(_this._serverBase + '/' + cadastreLayer.id + '/' + text);
-	                    var headers = new Headers();
-	                    headers.append('Content-Type', 'application/json');
-	                    var init = {
-	                        method: 'GET',
-	                        mode: 'cors',
-	                        cache: 'default'
-	                    };
-	                    fetch(req, init).then(function (response) {
-	                        return response.text();
-	                    }).then(function (text) {
-	                        var json = JSON.parse(text);
-	                        resolve([]);
-	                    });
-	                } else {
-	                    resolve([]);
-	                }
+	                var req = new Request(_this._serverBase + '/typeahead?limit=' + _this._limit + '&skip=0&text=' + text);
+	                var headers = new Headers();
+	                headers.append('Content-Type', 'application/json');
+	                var init = {
+	                    method: 'GET',
+	                    mode: 'cors',
+	                    cache: 'default'
+	                };
+	                fetch(req, init).then(function (response) {
+	                    return response.text();
+	                }).then(function (response) {
+	                    var json = JSON.parse(response);
+	                    if (json.status === 200) {
+	                        var rs = json.results.map(function (x) {
+	                            return {
+	                                name: x.title,
+	                                properties: x,
+	                                provider: _this,
+	                                query: text
+	                            };
+	                        });
+	                        resolve(rs);
+	                    } else {
+	                        resolve(json);
+	                    }
+	                });
 	            });
 	        }
 	    }, {
@@ -1291,13 +1320,13 @@
 	            };
 	
 	            return fetch;
-	        }(function (text) {
+	        }(function (obj) {
 	            var _this2 = this;
 	
-	            var cadastreLayer = this.getCadastreLayer(text);
+	            var cadastreLayer = this.getCadastreLayer(obj.value);
 	            return new Promise(function (resolve) {
 	                if (cadastreLayer) {
-	                    var req = new Request(_this2._serverBase + '/' + cadastreLayer.id + '/' + text);
+	                    var req = new Request(_this2._serverBase + '/features/' + cadastreLayer.id + '?tolerance=' + _this2._tolerance + '&limit=' + _this2._limit + '&text=' + obj.value);
 	                    var headers = new Headers();
 	                    headers.append('Content-Type', 'application/json');
 	                    var init = {
@@ -1307,20 +1336,21 @@
 	                    };
 	                    fetch(req, init).then(function (response) {
 	                        return response.text();
-	                    }).then(function (text) {
-	                        var json = JSON.parse(text);
+	                    }).then(function (response) {
+	                        var json = JSON.parse(response);
 	                        if (json.status === 200) {
-	                            if (typeof _this2._onFind === 'function') {
-	                                _this2._onFind(json);
+	                            if (typeof _this2._onFetch === 'function') {
+	                                _this2._onFetch(json);
 	                            }
-	
-	                            var rs = {
-	                                name: json.feature.attrs.id,
-	                                properties: json,
-	                                provider: _this2,
-	                                query: text
-	                            };
-	                            resolve([rs]);
+	                            var rs = json.features.map(function (x) {
+	                                return {
+	                                    name: x.attrs.name,
+	                                    properties: x,
+	                                    provider: _this2,
+	                                    query: obj
+	                                };
+	                            });
+	                            resolve(rs);
 	                        } else {
 	                            resolve(json);
 	                        }

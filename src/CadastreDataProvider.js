@@ -1,8 +1,10 @@
 class CadastreDataProvider {
-    constructor({serverBase, onFind}){
+    constructor({serverBase, limit, tolerance, onFetch}){
         this._serverBase = serverBase;
-        this._onFind = onFind;
-        this.showSuggestion = false;
+        this._limit = limit;
+        this._tolerance = tolerance;
+        this._onFetch = onFetch;
+        this.showSuggestion = true;
         this.showOnMap = false;
         this._cadastreLayers = [
 			{id: 5, title: 'ОКС', 		reg: /^\d\d:\d+:\d+:\d+:\d+$/},
@@ -35,59 +37,68 @@ class CadastreDataProvider {
         }
         return null;
     }
-    find(text) {
-        const cadastreLayer = this.getCadastreLayer(text);
+    find(text) {        
         return new Promise(resolve => {
-            if(cadastreLayer) {
-                let req = new Request(`${this._serverBase}/${cadastreLayer.id}/${text}`);
-                let headers = new Headers();
-                headers.append('Content-Type','application/json');
-                let init = {
-                    method: 'GET',            
-                    mode: 'cors',
-                    cache: 'default',
-                };
-                fetch (req, init)
-                .then(response => response.text())
-                .then(text => {
-                    const json = JSON.parse (text);                                            
-                    resolve([]);
-                    
-                });
-            }
-            else {
-                resolve([]);
-            }            
-        });
-    }
-    fetch(text) {
-        const cadastreLayer = this.getCadastreLayer(text);
-        return new Promise(resolve => {
-            if(cadastreLayer) {
-                let req = new Request(`${this._serverBase}/${cadastreLayer.id}/${text}`);
-                let headers = new Headers();
-                headers.append('Content-Type','application/json');
-                let init = {
-                    method: 'GET',            
-                    mode: 'cors',
-                    cache: 'default',
-                };
-                fetch (req, init)
-                .then(response => response.text())
-                .then(text => {
-                    const json = JSON.parse (text);
-                    if(json.status === 200){
-                        if (typeof this._onFind === 'function'){
-                            this._onFind(json);
-                        }
-
-                        let rs = {
-                            name: json.feature.attrs.id,
-                            properties: json,
+            let req = new Request(`${this._serverBase}/typeahead?limit=${this._limit}&skip=0&text=${text}`);
+            let headers = new Headers();
+            headers.append('Content-Type','application/json');
+            let init = {
+                method: 'GET',            
+                mode: 'cors',
+                cache: 'default',
+            };
+            fetch (req, init)
+            .then(response => response.text())
+            .then(response => {
+                const json = JSON.parse (response); 
+                if(json.status === 200){
+                    let rs = json.results.map(x => {
+                        return {
+                            name: x.title,
+                            properties: x,
                             provider: this,
                             query: text,
                         };
-                        resolve([rs]);
+                    });
+                    resolve(rs);
+                }
+                else {
+                    resolve(json);
+                }                                       
+                                    
+            });
+        });
+    }
+    fetch(obj) {        
+        const cadastreLayer = this.getCadastreLayer(obj.value);
+        return new Promise(resolve => {
+            if(cadastreLayer) {
+                let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?tolerance=${this._tolerance}&limit=${this._limit}&text=${obj.value}`);
+                let headers = new Headers();
+                headers.append('Content-Type','application/json');
+                let init = {
+                    method: 'GET',            
+                    mode: 'cors',
+                    cache: 'default',
+                };
+                fetch (req, init)
+                .then(response => response.text())
+                .then(response => {
+                    const json = JSON.parse (response);
+                    if(json.status === 200){
+                        if (typeof this._onFetch === 'function'){
+                            this._onFetch(json);
+                        }
+                        let rs = json.features.map(x => {
+                            return {
+                                name: x.attrs.name,
+                                properties: x,
+                                provider: this,
+                                query: obj,
+                            };
+                            
+                        });
+                        resolve(rs);
 
                     }
                     else {
