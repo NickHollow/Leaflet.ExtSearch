@@ -114,24 +114,6 @@
 	                    _this.results.show(entries);
 	                }
 	            });
-	
-	            // Promise
-	            // .all(this.options.providers.map(p => {
-	            //     return p.showSuggestion ? p.find(this._input.value) : p.fetch(this._input.value);
-	            // }))
-	            // .then(values => {                
-	            //     const features = values
-	            //     .filter(x => !x.provider.showSuggestion)
-	            //     .reduce((a,x) => {
-	            //         return a.concat(x.items);
-	            //     },[]);
-	            //     this._renderer.render(features, this.options.style);
-	
-	            //     if(features.length == 0){
-	            //         const entries = values.filter(x => x.provider.showSuggestion);
-	            //         this.results.show(entries);
-	            //     }
-	            // });
 	        }
 	    },
 	    _handleMouseMove: function _handleMouseMove(e) {
@@ -141,7 +123,7 @@
 	        var _this2 = this;
 	
 	        item.provider.fetch(item.properties).then(function (response) {
-	            if (item.provider.showOnMap && response.length) {
+	            if (item.provider.showOnSelect && response.length) {
 	                var features = response.map(function (x) {
 	                    return x.feature;
 	                });
@@ -986,6 +968,7 @@
 	        this._limit = limit;
 	        this.showSuggestion = true;
 	        this.showOnMap = false;
+	        this.showOnSelect = true;
 	        this.find = this.find.bind(this);
 	        this.fetch = this.fetch.bind(this);
 	        this._convertGeometry = this._convertGeometry.bind(this);
@@ -1148,6 +1131,7 @@
 	        this._onFetch = onFetch;
 	        this.showSuggestion = false;
 	        this.showOnMap = true;
+	        this.showOnSelect = false;
 	        this.fetch = this.fetch.bind(this);
 	        this.find = this.find.bind(this);
 	        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');
@@ -1242,6 +1226,7 @@
 	        this._onFetch = onFetch;
 	        this.showSuggestion = true;
 	        this.showOnMap = false;
+	        this.showOnSelect = true;
 	        this._cadastreLayers = [{ id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
 	        // ,
 	        // {id: 7, title: 'Границы', 	reg: /^\w+$/},

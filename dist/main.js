@@ -25,18 +25,18 @@
                 onFetch: function (response) {
 
                 },
+            }),            
+            new nsGmx.OsmDataProvider({
+                serverBase: 'http://maps.kosmosnimki.ru',
+                limit: 10,
+                onFetch: function (response) {
+
+                },
             }),
             new nsGmx.CadastreDataProvider({
                 serverBase: 'http://pkk5.rosreestr.ru/api',
                 limit: 10,
                 tolerance: 2048,
-                onFetch: function (response) {
-
-                },
-            }),
-            new nsGmx.OsmDataProvider({
-                serverBase: 'http://maps.kosmosnimki.ru',
-                limit: 10,
                 onFetch: function (response) {
 
                 },

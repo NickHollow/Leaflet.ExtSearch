@@ -47,25 +47,7 @@ let SearchControl = L.Control.extend({
                     const entries = state.response.filter(x => x.provider.showSuggestion);
                     this.results.show(entries);
                 }
-            });
-
-            // Promise
-            // .all(this.options.providers.map(p => {
-            //     return p.showSuggestion ? p.find(this._input.value) : p.fetch(this._input.value);
-            // }))
-            // .then(values => {                
-            //     const features = values
-            //     .filter(x => !x.provider.showSuggestion)
-            //     .reduce((a,x) => {
-            //         return a.concat(x.items);
-            //     },[]);
-            //     this._renderer.render(features, this.options.style);
-
-            //     if(features.length == 0){
-            //         const entries = values.filter(x => x.provider.showSuggestion);
-            //         this.results.show(entries);
-            //     }
-            // });
+            });            
         }        
     },
     _handleMouseMove: function(e){
@@ -75,7 +57,7 @@ let SearchControl = L.Control.extend({
         item.provider
         .fetch(item.properties)
         .then(response => {
-            if (item.provider.showOnMap && response.length) {
+            if (item.provider.showOnSelect && response.length) {
                 let features = response.map (x => x.feature);
                 this._renderer.render(features, this.options.style);                
             }            

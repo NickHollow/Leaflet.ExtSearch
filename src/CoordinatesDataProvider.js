@@ -4,6 +4,7 @@ class CoordinatesDataProvider {
         this._onFetch = onFetch;
         this.showSuggestion = false;
         this.showOnMap = true;
+         this.showOnSelect = false;
         this.fetch = this.fetch.bind(this);
         this.find = this.find.bind(this);
         this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');

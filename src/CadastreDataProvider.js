@@ -6,6 +6,7 @@ class CadastreDataProvider {
         this._onFetch = onFetch;
         this.showSuggestion = true;
         this.showOnMap = false;
+        this.showOnSelect = true;
         this._cadastreLayers = [
 			{id: 5, title: 'ОКС', 		reg: /^\d\d:\d+:\d+:\d+:\d+$/},
 			{id: 1, title: 'Участок', 	reg: /^\d\d:\d+:\d+:\d+$/},

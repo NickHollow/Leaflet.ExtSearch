@@ -6,6 +6,7 @@ class OsmDataProvider {
         this._limit = limit;
         this.showSuggestion = true;
         this.showOnMap = false;
+        this.showOnSelect = true;
         this.find = this.find.bind(this);
         this.fetch = this.fetch.bind(this);
         this._convertGeometry = this._convertGeometry.bind(this);
@@ -90,7 +91,7 @@ class OsmDataProvider {
         let headers = new Headers();
         headers.append('Content-Type','application/json');
         let init = {
-            method: 'GET',            
+            method: 'GET',
             mode: 'cors',
             cache: 'default',
         };
