@@ -10,10 +10,16 @@ class GmxRenderer {
     render(features, style){
         if(features && features.length){
             let json = features
-            .reduce ((a,feature) => {
-                let layer = L.GeoJSON.geometryToLayer(feature.geometry);        
-                this._gmxDrawing.add(layer, style).addTo(this._map);
-                a.addData(feature.geometry);
+            .reduce ((a, geojson) => {                
+                L.geoJson (geojson, {
+                    style: function (feature) {
+                        return style.lineStyle;
+                    },
+                    onEachFeature: function (feature, layer) {
+                        this._gmxDrawing.add(layer, style);
+                    }.bind(this)
+                });
+                a.addData(geojson.geometry);
                 return a;
             }, L.geoJson());
             let bounds = json.getBounds();

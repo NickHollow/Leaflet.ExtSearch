@@ -1,7 +1,8 @@
 class ResultView {
-    constructor({input, onSelect}){
+    constructor({input, onSelect, onSearch}){
         this._input = input;
         this._onSelect = onSelect;
+        this._onSearch = onSearch;
         this.index = -1;
         this.count = 0;
         this._item = null;
@@ -74,9 +75,25 @@ class ResultView {
                 }            
             }
             else if (e.key === 'Enter'){
-                this.complete (this.index);            
+                if (this.index < 0 && this._input.value && typeof this._onSearch == 'function'){
+                    const text = this._input.value;
+                    this.index = -1;
+                    this._item = null;
+                    this._input.focus();
+                    this._input.setSelectionRange(text.length, text.length);                                      
+                    this.hide();                        
+                    this._onSearch (text);
+                }
+                else {
+                    this.complete (this.index);
+                }                
             }  
-        }                                                
+        }
+        else if (e.key === 'Enter' && this._input.value && typeof this._onSearch == 'function'){ 
+            const text = this._input.value;
+            this._input.setSelectionRange(text.length, text.length);
+            this._onSearch (text);
+        }                                               
     }
 
     listVisible(){
@@ -108,7 +125,7 @@ class ResultView {
             if(typeof this._onSelect === 'function'){
                 this._onSelect (item);
             }
-        }
+        }        
     }
 
     show(items) {

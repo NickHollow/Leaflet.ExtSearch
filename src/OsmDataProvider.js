@@ -2,8 +2,7 @@
 class OsmDataProvider {
     constructor({serverBase, limit, onFetch}){
         this._serverBase = serverBase;
-        this._onFetch = onFetch;
-        this._limit = limit;
+        this._onFetch = onFetch;        
         this.showSuggestion = true;
         this.showOnMap = false;
         this.showOnSelect = true;
@@ -85,8 +84,10 @@ class OsmDataProvider {
             });
         });
     }
-    find(value){        
-        const query = `RequestType=SearchObject&IsStrongSearch=0&WithoutGeometry=1&UseOSM=1&Limit=${this._limit}&SearchString=${encodeURIComponent(value)}`;        
+    find(value, limit, strong, retrieveGeometry){
+        const _strong = Boolean(strong) ? 1 : 0;
+        const _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1; 
+        const query = `RequestType=SearchObject&IsStrongSearch=${_strong}&WithoutGeometry=${_withoutGeometry}&UseOSM=1&Limit=${limit}&SearchString=${encodeURIComponent(value)}`;        
         let req = new Request(`${this._serverBase}/SearchObject/SearchAddress.ashx?${query}${this._key}`);
         let headers = new Headers();
         headers.append('Content-Type','application/json');
@@ -102,19 +103,38 @@ class OsmDataProvider {
             })
             .then(text => {
                 const json = JSON.parse (text.slice(1, text.length - 1));
-                if(json.Status === 'ok'){
-                    const rs = 
-                        json.Result
-                        .reduce((a,x) => a.concat(x.SearchResult), [])
-                        .map(x => {
+                if(json.Status === 'ok'){                    
+                    const rs = json.Result
+                    .reduce((a,x) => a.concat(x.SearchResult), [])
+                    .map(x => {
+                        if (retrieveGeometry) {
+                            let g = this._convertGeometry (x.Geometry);
+                            let props = Object.keys(x)
+                            .filter(k => k !== 'Geometry')
+                            .reduce((a,k) => {
+                                a[k] = x[k];
+                                return a;
+                            }, {});
+                            return {
+                                feature: {
+                                    type: 'Feature',
+                                    geometry: g,
+                                    properties: props,                            
+                                },
+                                provider: this,
+                                query: value,
+                            };
+                        }
+                        else {
                             return {
                                 name: x.ObjNameShort,
                                 properties: x,
                                 provider: this,
                                 query: value,
                             };
-                        });                 
-                    resolve(rs);
+                        }                        
+                    });
+                    resolve(rs);                    
                 }
                 else {
                     reject(json);

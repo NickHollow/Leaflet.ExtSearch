@@ -20,6 +20,7 @@
     {
         showFirst: true,
         position:'topleft',
+        limit: 10,
         providers: [
             new nsGmx.CoordinatesDataProvider({
                 onFetch: function (response) {
@@ -30,7 +31,7 @@
                 serverBase: 'http://maps.kosmosnimki.ru',
                 limit: 10,
                 onFetch: function (response) {
-
+                    console.log(response);
                 },
             }),
             new nsGmx.CadastreDataProvider({
@@ -38,7 +39,7 @@
                 limit: 10,
                 tolerance: 2048,
                 onFetch: function (response) {
-
+                    console.log(response);
                 },
             }),            
         ],
@@ -53,9 +54,9 @@
             },
             lineStyle: {
                 fill: false,
-                weight: 2,
+                weight: 3,
                 opacity: 1,
-                color: '#00008B'
+                color: '#008B8B'
             }
         },
     });

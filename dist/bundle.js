@@ -88,7 +88,7 @@
 	                        if (_this.options.showFirst && state.completed) {
 	                            resolve(state);
 	                        } else {
-	                            var p = provider.showSuggestion ? provider.find(text) : provider.fetch(text);
+	                            var p = provider.showSuggestion ? provider.find(text, _this.options.limit, false, false) : provider.fetch(text);
 	                            p.then(function (response) {
 	                                state.completed = _this.options.showFirst && response.length;
 	                                state.response = state.response.concat(response);
@@ -119,15 +119,46 @@
 	    _handleMouseMove: function _handleMouseMove(e) {
 	        e.stopPropagation();
 	    },
-	    _selectItem: function _selectItem(item) {
+	    _search: function _search(text) {
 	        var _this2 = this;
+	
+	        var tasks = this.options.providers.filter(function (provider) {
+	            return provider.showOnSelect;
+	        }).map(function (provider) {
+	            return function (state) {
+	                return new Promise(function (resolve) {
+	                    if (_this2.options.showFirst && state.completed) {
+	                        resolve(state);
+	                    } else {
+	                        var p = provider.find(text, 1, true, true);
+	                        p.then(function (response) {
+	                            state.completed = response.length;
+	                            state.response = state.response.concat(response);
+	                            resolve(state);
+	                        });
+	                    }
+	                });
+	            };
+	        });
+	
+	        this._chain(tasks, { completed: false, response: [] }).then(function (state) {
+	            var features = state.response.map(function (x) {
+	                return x.feature;
+	            });
+	            if (features.length) {
+	                _this2._renderer.render([features[0]], _this2.options.style);
+	            }
+	        });
+	    },
+	    _selectItem: function _selectItem(item) {
+	        var _this3 = this;
 	
 	        item.provider.fetch(item.properties).then(function (response) {
 	            if (item.provider.showOnSelect && response.length) {
 	                var features = response.map(function (x) {
 	                    return x.feature;
 	                });
-	                _this2._renderer.render(features, _this2.options.style);
+	                _this3._renderer.render(features, _this3.options.style);
 	            }
 	        });
 	    },
@@ -148,7 +179,8 @@
 	
 	        this.results = new _ResultView.ResultView({
 	            input: this._input,
-	            onSelect: this._selectItem.bind(this)
+	            onSelect: this._selectItem.bind(this),
+	            onSearch: this._search.bind(this)
 	        });
 	
 	        this._renderer = this.options.renderer || new _GmxRenderer.GmxRenderer(map);
@@ -188,12 +220,14 @@
 	var ResultView = function () {
 	    function ResultView(_ref) {
 	        var input = _ref.input,
-	            onSelect = _ref.onSelect;
+	            onSelect = _ref.onSelect,
+	            onSearch = _ref.onSearch;
 	
 	        _classCallCheck(this, ResultView);
 	
 	        this._input = input;
 	        this._onSelect = onSelect;
+	        this._onSearch = onSearch;
 	        this.index = -1;
 	        this.count = 0;
 	        this._item = null;
@@ -266,8 +300,22 @@
 	                        this._item = null;
 	                    }
 	                } else if (e.key === 'Enter') {
-	                    this.complete(this.index);
+	                    if (this.index < 0 && this._input.value && typeof this._onSearch == 'function') {
+	                        var text = this._input.value;
+	                        this.index = -1;
+	                        this._item = null;
+	                        this._input.focus();
+	                        this._input.setSelectionRange(text.length, text.length);
+	                        this.hide();
+	                        this._onSearch(text);
+	                    } else {
+	                        this.complete(this.index);
+	                    }
 	                }
+	            } else if (e.key === 'Enter' && this._input.value && typeof this._onSearch == 'function') {
+	                var _text = this._input.value;
+	                this._input.setSelectionRange(_text.length, _text.length);
+	                this._onSearch(_text);
 	            }
 	        }
 	    }, {
@@ -367,14 +415,20 @@
 	
 	    _createClass(GmxRenderer, [{
 	        key: 'render',
-	        value: function render(features, style) {
+	        value: function render(features, _style) {
 	            var _this = this;
 	
 	            if (features && features.length) {
-	                var json = features.reduce(function (a, feature) {
-	                    var layer = L.GeoJSON.geometryToLayer(feature.geometry);
-	                    _this._gmxDrawing.add(layer, style).addTo(_this._map);
-	                    a.addData(feature.geometry);
+	                var json = features.reduce(function (a, geojson) {
+	                    L.geoJson(geojson, {
+	                        style: function style(feature) {
+	                            return _style.lineStyle;
+	                        },
+	                        onEachFeature: function (feature, layer) {
+	                            this._gmxDrawing.add(layer, _style);
+	                        }.bind(_this)
+	                    });
+	                    a.addData(geojson.geometry);
 	                    return a;
 	                }, L.geoJson());
 	                var bounds = json.getBounds();
@@ -965,7 +1019,6 @@
 	
 	        this._serverBase = serverBase;
 	        this._onFetch = onFetch;
-	        this._limit = limit;
 	        this.showSuggestion = true;
 	        this.showOnMap = false;
 	        this.showOnSelect = true;
@@ -1063,10 +1116,12 @@
 	        })
 	    }, {
 	        key: 'find',
-	        value: function find(value) {
+	        value: function find(value, limit, strong, retrieveGeometry) {
 	            var _this2 = this;
 	
-	            var query = 'RequestType=SearchObject&IsStrongSearch=0&WithoutGeometry=1&UseOSM=1&Limit=' + this._limit + '&SearchString=' + encodeURIComponent(value);
+	            var _strong = Boolean(strong) ? 1 : 0;
+	            var _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1;
+	            var query = 'RequestType=SearchObject&IsStrongSearch=' + _strong + '&WithoutGeometry=' + _withoutGeometry + '&UseOSM=1&Limit=' + limit + '&SearchString=' + encodeURIComponent(value);
 	            var req = new Request(this._serverBase + '/SearchObject/SearchAddress.ashx?' + query + this._key);
 	            var headers = new Headers();
 	            headers.append('Content-Type', 'application/json');
@@ -1084,12 +1139,31 @@
 	                        var rs = json.Result.reduce(function (a, x) {
 	                            return a.concat(x.SearchResult);
 	                        }, []).map(function (x) {
-	                            return {
-	                                name: x.ObjNameShort,
-	                                properties: x,
-	                                provider: _this2,
-	                                query: value
-	                            };
+	                            if (retrieveGeometry) {
+	                                var g = _this2._convertGeometry(x.Geometry);
+	                                var props = Object.keys(x).filter(function (k) {
+	                                    return k !== 'Geometry';
+	                                }).reduce(function (a, k) {
+	                                    a[k] = x[k];
+	                                    return a;
+	                                }, {});
+	                                return {
+	                                    feature: {
+	                                        type: 'Feature',
+	                                        geometry: g,
+	                                        properties: props
+	                                    },
+	                                    provider: _this2,
+	                                    query: value
+	                                };
+	                            } else {
+	                                return {
+	                                    name: x.ObjNameShort,
+	                                    properties: x,
+	                                    provider: _this2,
+	                                    query: value
+	                                };
+	                            }
 	                        });
 	                        resolve(rs);
 	                    } else {
@@ -1182,7 +1256,7 @@
 	        }
 	    }, {
 	        key: 'find',
-	        value: function find(value) {
+	        value: function find(value, limit, strong, retrieveGeometry) {
 	            return new Promise(function (resolve) {
 	                return resolve([]);
 	            });
@@ -1221,12 +1295,11 @@
 	        _classCallCheck(this, CadastreDataProvider);
 	
 	        this._serverBase = serverBase;
-	        this._limit = limit;
 	        this._tolerance = tolerance;
 	        this._onFetch = onFetch;
 	        this.showSuggestion = true;
 	        this.showOnMap = false;
-	        this.showOnSelect = true;
+	        this.showOnSelect = false;
 	        this._cadastreLayers = [{ id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
 	        // ,
 	        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
@@ -1261,11 +1334,11 @@
 	        }
 	    }, {
 	        key: 'find',
-	        value: function find(text) {
+	        value: function find(value, limit, strong, retrieveGeometry) {
 	            var _this = this;
 	
 	            return new Promise(function (resolve) {
-	                var req = new Request(_this._serverBase + '/typeahead?limit=' + _this._limit + '&skip=0&text=' + text);
+	                var req = new Request(_this._serverBase + '/typeahead?limit=' + limit + '&skip=0&text=' + value);
 	                var headers = new Headers();
 	                headers.append('Content-Type', 'application/json');
 	                var init = {
@@ -1283,7 +1356,7 @@
 	                                name: x.title,
 	                                properties: x,
 	                                provider: _this,
-	                                query: text
+	                                query: value
 	                            };
 	                        });
 	                        resolve(rs);
@@ -1311,7 +1384,7 @@
 	            var cadastreLayer = this.getCadastreLayer(obj.value);
 	            return new Promise(function (resolve) {
 	                if (cadastreLayer) {
-	                    var req = new Request(_this2._serverBase + '/features/' + cadastreLayer.id + '?tolerance=' + _this2._tolerance + '&limit=' + _this2._limit + '&text=' + obj.value);
+	                    var req = new Request(_this2._serverBase + '/features/' + cadastreLayer.id + '?tolerance=' + _this2._tolerance + '&limit=1&text=' + obj.value);
 	                    var headers = new Headers();
 	                    headers.append('Content-Type', 'application/json');
 	                    var init = {

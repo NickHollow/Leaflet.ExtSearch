@@ -4,7 +4,7 @@ class CoordinatesDataProvider {
         this._onFetch = onFetch;
         this.showSuggestion = false;
         this.showOnMap = true;
-         this.showOnSelect = false;
+        this.showOnSelect = false;
         this.fetch = this.fetch.bind(this);
         this.find = this.find.bind(this);
         this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');
@@ -46,7 +46,7 @@ class CoordinatesDataProvider {
             resolve(g ? [result] : []);
         });
     }
-    find (value){
+    find(value, limit, strong, retrieveGeometry){
         return new Promise(resolve => resolve([]));
     }
 }

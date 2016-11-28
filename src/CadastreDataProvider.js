@@ -1,12 +1,11 @@
 class CadastreDataProvider {
     constructor({serverBase, limit, tolerance, onFetch}){
-        this._serverBase = serverBase;
-        this._limit = limit;
+        this._serverBase = serverBase;        
         this._tolerance = tolerance;
         this._onFetch = onFetch;
         this.showSuggestion = true;
         this.showOnMap = false;
-        this.showOnSelect = true;
+        this.showOnSelect = false;
         this._cadastreLayers = [
 			{id: 5, title: 'ОКС', 		reg: /^\d\d:\d+:\d+:\d+:\d+$/},
 			{id: 1, title: 'Участок', 	reg: /^\d\d:\d+:\d+:\d+$/},
@@ -38,9 +37,9 @@ class CadastreDataProvider {
         }
         return null;
     }
-    find(text) {        
+    find(value, limit, strong, retrieveGeometry){       
         return new Promise(resolve => {
-            let req = new Request(`${this._serverBase}/typeahead?limit=${this._limit}&skip=0&text=${text}`);
+            let req = new Request(`${this._serverBase}/typeahead?limit=${limit}&skip=0&text=${value}`);
             let headers = new Headers();
             headers.append('Content-Type','application/json');
             let init = {
@@ -58,7 +57,7 @@ class CadastreDataProvider {
                             name: x.title,
                             properties: x,
                             provider: this,
-                            query: text,
+                            query: value,
                         };
                     });
                     resolve(rs);
@@ -74,7 +73,7 @@ class CadastreDataProvider {
         const cadastreLayer = this.getCadastreLayer(obj.value);
         return new Promise(resolve => {
             if(cadastreLayer) {
-                let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?tolerance=${this._tolerance}&limit=${this._limit}&text=${obj.value}`);
+                let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?tolerance=${this._tolerance}&limit=1&text=${obj.value}`);
                 let headers = new Headers();
                 headers.append('Content-Type','application/json');
                 let init = {

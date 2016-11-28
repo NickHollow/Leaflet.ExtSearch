@@ -27,7 +27,7 @@ let SearchControl = L.Control.extend({
                             resolve(state);
                         }
                         else {
-                            let p = provider.showSuggestion ? provider.find (text) : provider.fetch (text);
+                            let p = provider.showSuggestion ? provider.find (text, this.options.limit, false, false) : provider.fetch (text);
                             p.then(response => {
                                 state.completed = this.options.showFirst && response.length;
                                 state.response = state.response.concat(response);                                
@@ -52,6 +52,36 @@ let SearchControl = L.Control.extend({
     },
     _handleMouseMove: function(e){
         e.stopPropagation();
+    },
+    _search: function (text) {
+        let tasks = this.options.providers
+            .filter (provider => provider.showOnSelect)
+            .map(provider => {
+                return state => {
+                    return new Promise(resolve => {
+                        if (this.options.showFirst && state.completed) {
+                            resolve(state);
+                        }
+                        else {
+                            let p = provider.find (text, 1, true, true);
+                            p.then(response => {
+                                state.completed = response.length;
+                                state.response = state.response.concat(response);                                
+                                resolve(state);
+                            });
+                        }
+                    });
+                };
+            });
+
+            this._chain (tasks, {completed: false, response: []})
+            .then(state => {
+                const features = state.response.map(x => x.feature);
+                if(features.length) {
+                    this._renderer.render([features[0]], this.options.style);
+                }
+                
+            });
     },
     _selectItem: function(item){        
         item.provider
@@ -81,6 +111,7 @@ let SearchControl = L.Control.extend({
         this.results = new ResultView({
             input: this._input,
             onSelect: this._selectItem.bind(this),
+            onSearch: this._search.bind(this),
         });        
 
         this._renderer = this.options.renderer || new GmxRenderer(map);
