@@ -95,7 +95,7 @@ let SearchControl = L.Control.extend({
     },
     onAdd: function(map) {
         this._container = L.DomUtil.create('div', 'leaflet-ext-search');
-        this._container.innerHTML = '<input type="text" value="" />';
+        this._container.innerHTML = `<input type="text" value="" placeholder="${this.options.placeHolder}" />`;
         this._input = this._container.querySelector('input');
 
         // const style = getComputedStyle (map._container);

@@ -18,6 +18,7 @@
 
     let searchControl = new nsGmx.SearchControl(   
     {
+        placeHolder: 'Поиск по кадастру, адресам, координатам',
         showFirst: true,
         position:'topleft',
         limit: 10,

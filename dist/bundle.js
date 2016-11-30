@@ -164,7 +164,7 @@
 	    },
 	    onAdd: function onAdd(map) {
 	        this._container = L.DomUtil.create('div', 'leaflet-ext-search');
-	        this._container.innerHTML = '<input type="text" value="" />';
+	        this._container.innerHTML = '<input type="text" value="" placeholder="' + this.options.placeHolder + '" />';
 	        this._input = this._container.querySelector('input');
 	
 	        // const style = getComputedStyle (map._container);
@@ -311,11 +311,27 @@
 	                    } else {
 	                        this.complete(this.index);
 	                    }
+	                } else if (e.key === 'Escape') {
+	                    if (this.index >= 0) {
+	                        var _el5 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                        L.DomUtil.removeClass(_el5, 'leaflet-ext-search-list-selected');
+	                    }
+	                    this.index = -1;
+	                    this._input.focus();
+	                    this._input.value = this._inputText;
+	                    this._item = null;
 	                }
-	            } else if (e.key === 'Enter' && this._input.value && typeof this._onSearch == 'function') {
-	                var _text = this._input.value;
-	                this._input.setSelectionRange(_text.length, _text.length);
-	                this._onSearch(_text);
+	            } else {
+	                if (e.key === 'Enter' && this._input.value && typeof this._onSearch == 'function') {
+	                    var _text = this._input.value;
+	                    this._input.setSelectionRange(_text.length, _text.length);
+	                    this._onSearch(_text);
+	                } else if (e.key === 'Escape') {
+	                    this._input.value = '';
+	                    this.index = -1;
+	                    this._input.focus();
+	                    this.hide();
+	                }
 	            }
 	        }
 	    }, {

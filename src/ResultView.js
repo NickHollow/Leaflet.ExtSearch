@@ -87,13 +87,31 @@ class ResultView {
                 else {
                     this.complete (this.index);
                 }                
-            }  
+            }
+            else if (e.key === 'Escape'){
+                if(this.index >= 0) {
+                    let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
+                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                }                
+                this.index = -1;
+                this._input.focus();                
+                this._input.value = this._inputText;
+                this._item = null;
+            } 
         }
-        else if (e.key === 'Enter' && this._input.value && typeof this._onSearch == 'function'){ 
-            const text = this._input.value;
-            this._input.setSelectionRange(text.length, text.length);
-            this._onSearch (text);
-        }                                               
+        else {
+            if (e.key === 'Enter' && this._input.value && typeof this._onSearch == 'function'){ 
+                const text = this._input.value;
+                this._input.setSelectionRange(text.length, text.length);
+                this._onSearch (text);
+            }
+            else if (e.key === 'Escape'){
+                this._input.value = '';
+                this.index = -1;
+                this._input.focus();
+                this.hide();
+            }
+        }                                                     
     }
 
     listVisible(){
