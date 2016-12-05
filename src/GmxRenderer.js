@@ -1,11 +1,7 @@
-import '../external/gmxDrawing/dist/gmxDrawing-min.js';
-import '../external/gmxDrawing/dist/css/gmxDrawing.css';
-
 class GmxRenderer {
     constructor(map){
         this._map = map;
-        this._gmxDrawing = new L.GmxDrawing ();
-        this._gmxDrawing.initialize(map);        
+        this._gmxDrawing = this._map.gmxDrawing;         
     }
     render(features, style){
         if(features && features.length){

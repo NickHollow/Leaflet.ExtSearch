@@ -7,12 +7,9 @@
   user-select: none;
 }
 
-@media (max-width: 1680px) {
-    .leaflet-ext-search input, .leaflet-ext-search-list {
-        width: 1024px;
-    }
+.leaflet-ext-search input, .leaflet-ext-search-list {
+    width: 600px;
 }
-
 
 .leaflet-ext-search-list{    
     background-color: white;    
@@ -30,4 +27,23 @@
     list-style-type: none;    
     margin: 0px;
     padding: 0px;    
+}
+
+.leaflet-ext-search .leaflet-ext-search-button {
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    border-radius: 3px;    
+    padding: 1px 4px 1px 4px;
+    border: 1px solid lightslategray;
+    background-color: lightsteelblue;
+    font-weight: bold;
+    float: right;
+    cursor: pointer;   
+}
+
+.leaflet-ext-search .leaflet-ext-search-button-collapsed::before {
+    content: '\25c4';
+}
+
+.leaflet-ext-search .leaflet-ext-search-button-expanded::before {
+    content: '\25ba';
 }

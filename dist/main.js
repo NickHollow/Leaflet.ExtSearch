@@ -20,15 +20,17 @@
     {
         placeHolder: 'Поиск по кадастру, адресам, координатам',
         showFirst: true,
-        position:'topleft',
+        position:'topright',
         limit: 10,
         providers: [
             new nsGmx.CoordinatesDataProvider({
+                showOnMap: false,
                 onFetch: function (response) {
 
                 },
-            }),            
+            }),                   
             new nsGmx.OsmDataProvider({
+                showOnMap: true,
                 serverBase: 'http://maps.kosmosnimki.ru',
                 limit: 10,
                 onFetch: function (response) {

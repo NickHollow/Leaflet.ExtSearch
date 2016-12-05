@@ -1,11 +1,12 @@
 
 class OsmDataProvider {
-    constructor({serverBase, limit, onFetch}){
+    constructor({serverBase, limit, onFetch, showOnMap}){
         this._serverBase = serverBase;
         this._onFetch = onFetch;        
         this.showSuggestion = true;
-        this.showOnMap = false;
+        this.showOnMap = showOnMap;
         this.showOnSelect = true;
+        this.showOnEnter = true;
         this.find = this.find.bind(this);
         this.fetch = this.fetch.bind(this);
         this._convertGeometry = this._convertGeometry.bind(this);
@@ -47,11 +48,9 @@ class OsmDataProvider {
         };
         return new Promise((resolve, reject) => {
             fetch (req, init)
-            .then(response => {
-                return response.text();
-            })
-            .then(text => {
-                const json = JSON.parse (text.slice(1, text.length - 1));
+            .then(response => response.text())
+            .then(response => {                
+                const json = JSON.parse (response.slice(1, response.length - 1));
                 if(json.Status === 'ok'){
                     const rs = json.Result
                     .reduce((a,x) => a.concat(x.SearchResult), [])
@@ -98,11 +97,9 @@ class OsmDataProvider {
         };
         return new Promise((resolve, reject) => {
             fetch (req, init)
+            .then(response => response.text())
             .then(response => {
-                return response.text();
-            })
-            .then(text => {
-                const json = JSON.parse (text.slice(1, text.length - 1));
+                const json = JSON.parse (response.slice(1, response.length - 1));
                 if(json.Status === 'ok'){                    
                     const rs = json.Result
                     .reduce((a,x) => a.concat(x.SearchResult), [])
@@ -134,6 +131,9 @@ class OsmDataProvider {
                             };
                         }                        
                     });
+                    if (limit === 1 && strong && retrieveGeometry && typeof this._onFetch === 'function'){
+                        this._onFetch(rs);
+                    }
                     resolve(rs);                    
                 }
                 else {

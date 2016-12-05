@@ -1,11 +1,12 @@
 class CadastreDataProvider {
-    constructor({serverBase, limit, tolerance, onFetch}){
+    constructor({serverBase, limit, tolerance, onFetch, showOnMap}){
         this._serverBase = serverBase;        
         this._tolerance = tolerance;
         this._onFetch = onFetch;
         this.showSuggestion = true;
-        this.showOnMap = false;
+        this.showOnMap = showOnMap;
         this.showOnSelect = false;
+        this.showOnEnter = false;
         this._cadastreLayers = [
 			{id: 5, title: 'ОКС', 		reg: /^\d\d:\d+:\d+:\d+:\d+$/},
 			{id: 1, title: 'Участок', 	reg: /^\d\d:\d+:\d+:\d+$/},

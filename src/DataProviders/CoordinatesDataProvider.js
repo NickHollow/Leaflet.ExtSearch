@@ -1,10 +1,11 @@
 
 class CoordinatesDataProvider {
-    constructor({onFetch}){
+    constructor({onFetch, showOnMap}){
         this._onFetch = onFetch;
         this.showSuggestion = false;
-        this.showOnMap = true;
+        this.showOnMap = showOnMap;
         this.showOnSelect = false;
+        this.showOnEnter = true;
         this.fetch = this.fetch.bind(this);
         this.find = this.find.bind(this);
         this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');
@@ -37,17 +38,17 @@ class CoordinatesDataProvider {
         }
     }
     fetch (value){
+        return new Promise(resolve => resolve([]));        
+    }
+    find(value, limit, strong, retrieveGeometry){
         let g = this._parseCoordinates(value);        
         return new Promise(resolve => {
             let result = {feature: { type: 'Feature', geometry: g, properties: {} }, provider: this, query: value};
-            if (typeof this._onFetch === 'function'){
+            if (g && typeof this._onFetch === 'function'){
                 this._onFetch(result);
             }             
             resolve(g ? [result] : []);
         });
-    }
-    find(value, limit, strong, retrieveGeometry){
-        return new Promise(resolve => resolve([]));
     }
 }
 

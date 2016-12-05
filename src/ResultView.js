@@ -1,8 +1,8 @@
 class ResultView {
-    constructor({input, onSelect, onSearch}){
+    constructor({input, onSelect, onEnter}){
         this._input = input;
         this._onSelect = onSelect;
-        this._onSearch = onSearch;
+        this._onEnter = onEnter;
         this.index = -1;
         this.count = 0;
         this._item = null;
@@ -13,12 +13,22 @@ class ResultView {
         this._list.style.top = `${this._input.offsetTop + this._input.offsetHeight + 2}px`;
         this._list.style.left = `${this._input.offsetLeft}px`;
         this._input.addEventListener('keydown', this._handleKey.bind(this));
+        this._input.addEventListener('focus', this._handleFocus.bind(this));
         this._list.addEventListener('keydown', this._handleKey.bind(this));
         this._list.addEventListener('wheel', this._handleWheel.bind(this));
         // this._list.addEventListener('mousemove', this._handleWheel.bind(this));
         this._input.parentElement.appendChild(this._list); 
         this._input.addEventListener('input', this._handleChange.bind(this));      
-    }   
+    }  
+
+    _handleFocus(e){        
+        if(this.index >= 0) {
+            let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
+            L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+        }
+        this.index = -1;
+        this._item = null;
+    } 
 
     _handleChange(e){
         this._inputText = this._input.value;
@@ -30,7 +40,7 @@ class ResultView {
 
     _handleMouseMove(e){
         e.stopPropagation();
-    }
+    }    
 
     _handleKey(e){
         if(this.listVisible()) {
@@ -65,51 +75,41 @@ class ResultView {
                     this.selectItem(this.index);
                     el.focus();            
                 }
-                else if (this.index === 0) {
-                    let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
-                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                    this.index = -1;
+                else if (this.index === 0) {                    
                     this._input.focus();                
-                    this._input.value = this._inputText;
-                    this._item = null;
+                    this._input.value = this._inputText;                    
                 }            
             }
             else if (e.key === 'Enter'){
-                if (this.index < 0 && this._input.value && typeof this._onSearch == 'function'){
+                if (this.index < 0 && this._input.value && typeof this._onEnter == 'function'){
                     const text = this._input.value;
-                    this.index = -1;
-                    this._item = null;
                     this._input.focus();
                     this._input.setSelectionRange(text.length, text.length);                                      
                     this.hide();                        
-                    this._onSearch (text);
+                    this._onEnter (text);
                 }
                 else {
                     this.complete (this.index);
                 }                
             }
             else if (e.key === 'Escape'){
-                if(this.index >= 0) {
-                    let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
-                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                }                
-                this.index = -1;
-                this._input.focus();                
-                this._input.value = this._inputText;
-                this._item = null;
+                if (this.index < 0) {
+                    this.hide ();
+                }
+                this._input.focus();
+                this._input.value = this._inputText;                            
             } 
         }
         else {
-            if (e.key === 'Enter' && this._input.value && typeof this._onSearch == 'function'){ 
+            if (e.key === 'Enter' && this._input.value && typeof this._onEnter == 'function'){ 
                 const text = this._input.value;
                 this._input.setSelectionRange(text.length, text.length);
-                this._onSearch (text);
+                this._onEnter (text);
             }
             else if (e.key === 'Escape'){
                 this._input.value = '';
                 this.index = -1;
-                this._input.focus();
-                this.hide();
+                this._input.focus();                
             }
         }                                                     
     }
@@ -147,19 +147,21 @@ class ResultView {
     }
 
     show(items) {
-        this._item = null;
-        this.index = -1;
-        this._items = items;
-        const html = '<ul>' + this._items.map((x,i) => `<li tabindex=${i}>${x.name}</li>`, []).join('') + '</ul>';                            
+        if (items.length) {
+            this._item = null;
+            this.index = -1;
+            this._items = items;
+            const html = '<ul>' + this._items.map((x,i) => `<li tabindex=${i}>${x.name}</li>`, []).join('') + '</ul>';                            
 
-        this._list.innerHTML = html;
-        let elements = this._list.querySelectorAll('li');
-        for (let i = 0; i < elements.length; ++i){
-            elements[i].addEventListener('click', this._handleClick.bind(this, i));            
+            this._list.innerHTML = html;
+            let elements = this._list.querySelectorAll('li');
+            for (let i = 0; i < elements.length; ++i){
+                elements[i].addEventListener('click', this._handleClick.bind(this, i));            
+            }
+            
+            this.count = elements.length;
+            this._list.style.display = 'block';
         }
-        
-        this.count = elements.length;
-        this._list.style.display = 'block';
     }
     hide() {        
         this._list.style.display = 'none';                
