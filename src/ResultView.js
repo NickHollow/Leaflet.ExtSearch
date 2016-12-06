@@ -13,13 +13,18 @@ class ResultView {
         this._list.style.top = `${this._input.offsetTop + this._input.offsetHeight + 2}px`;
         this._list.style.left = `${this._input.offsetLeft}px`;
         this._input.addEventListener('keydown', this._handleKey.bind(this));
+        this._input.addEventListener('click', this._handleInputClick.bind(this));
         this._input.addEventListener('focus', this._handleFocus.bind(this));
         this._list.addEventListener('keydown', this._handleKey.bind(this));
         this._list.addEventListener('wheel', this._handleWheel.bind(this));
         // this._list.addEventListener('mousemove', this._handleWheel.bind(this));
         this._input.parentElement.appendChild(this._list); 
-        this._input.addEventListener('input', this._handleChange.bind(this));      
-    }  
+        this._input.addEventListener('input', this._handleChange.bind(this));
+    }
+
+    _handleInputClick (e) {
+        e.stopPropagation();
+    }
 
     _handleFocus(e){        
         if(this.index >= 0) {

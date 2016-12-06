@@ -1,6 +1,6 @@
 (function(){    
 
-    let map = L.map('map', {
+    var map = L.map('map', {
         center: new L.LatLng(55.634508, 37.433167),
         minZoom: 3,
         maxZoom: 17,
@@ -16,30 +16,22 @@
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-	let cnInterface = window.nsGmx ? window.nsGmx.cadastre : null,
-		cadastreLayerGroup = cnInterface ? cnInterface.afterViewer({notHideDrawing:true}, map) : null;
+	var cnInterface = window.nsGmx ? window.nsGmx.cadastre : null;
+	var cadastreLayerGroup = cnInterface ? cnInterface.afterViewer({notHideDrawing:true}, map) : null;
 
-    let searchControl = new nsGmx.SearchControl(   
+    map.on('popupclose', function (ev) {
+        if (ev.popup === cnInterface.getPopup()) {
+            map.removeLayer(cadastreLayerGroup);
+        }
+    });
+
+    var searchControl = new nsGmx.SearchControl(   
     {
         placeHolder: 'Поиск по кадастру, адресам, координатам',
         showFirst: true,
         position:'topright',
         limit: 10,
         providers: [
-            new nsGmx.CoordinatesDataProvider({
-                showOnMap: false,
-                onFetch: function (response) {
-
-                },
-            }),                   
-            new nsGmx.OsmDataProvider({
-                showOnMap: true,
-                serverBase: 'http://maps.kosmosnimki.ru',
-                limit: 10,
-                onFetch: function (response) {
-                    console.log(response);
-                },
-            }),
             new nsGmx.CadastreDataProvider({
                 serverBase: 'http://pkk5.rosreestr.ru/api',
                 limit: 10,
@@ -68,6 +60,20 @@
 					}
                 },
             }),            
+            new nsGmx.CoordinatesDataProvider({
+                showOnMap: false,
+                onFetch: function (response) {
+
+                },
+            }),                   
+            new nsGmx.OsmDataProvider({
+                showOnMap: true,
+                serverBase: 'http://maps.kosmosnimki.ru',
+                limit: 10,
+                onFetch: function (response) {
+                    console.log(response);
+                },
+            }),
         ],
         style: {
             editable: false,
@@ -88,4 +94,5 @@
     });
 
     map.addControl(searchControl);
+
 }());

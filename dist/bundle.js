@@ -155,37 +155,15 @@
 	            }
 	        });
 	    },
-	    _handleCollapse: function _handleCollapse(e) {
-	        e.preventDefault();
-	        var btn = e.target;
-	        var expanded = L.DomUtil.hasClass(btn, 'leaflet-ext-search-button-expanded');
-	        if (expanded) {
-	            L.DomUtil.removeClass(btn, 'leaflet-ext-search-button-expanded');
-	            L.DomUtil.addClass(btn, 'leaflet-ext-search-button-collapsed');
-	            this._input.style.display = 'none';
-	        } else {
-	            L.DomUtil.removeClass(btn, 'leaflet-ext-search-button-collapsed');
-	            L.DomUtil.addClass(btn, 'leaflet-ext-search-button-expanded');
-	            this._input.style.display = 'inline';
-	        }
-	    },
 	    onAdd: function onAdd(map) {
 	        this._container = L.DomUtil.create('div', 'leaflet-ext-search');
-	        this._container.innerHTML = '<input type="text" value="" placeholder="' + this.options.placeHolder + '" /><span class="leaflet-ext-search-button leaflet-ext-search-button-expanded"></span>';
+	        this._container.innerHTML = '<input type="text" value="" placeholder="' + this.options.placeHolder + '" /><span class="leaflet-ext-search-button"></span>';
 	        this._input = this._container.querySelector('input');
-	
-	        // const style = getComputedStyle (map._container);
-	        // const matches = (/\d+/g).exec (style.width);
-	        // if(matches && matches.length){
-	        //     const width = Number.parseInt (matches[0]) - 50;
-	        //     this._input.style.width = `${width}px`;
-	        // }
-	
-	        var button = this._container.querySelector('.leaflet-ext-search-button');
-	        button.addEventListener('click', this._handleCollapse.bind(this));
-	
 	        this._input.addEventListener('input', this._handleChange.bind(this));
 	        this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
+	
+	        this._button = this._container.querySelector('.leaflet-ext-search-button');
+	        this._button.addEventListener('click', this._handleSearch.bind(this));
 	
 	        this.results = new _ResultView.ResultView({
 	            input: this._input,
@@ -196,7 +174,41 @@
 	        this._renderer = this.options.renderer || new _GmxRenderer.GmxRenderer(map);
 	
 	        return this._container;
+	    },
+	
+	    _handleSearch: function _handleSearch(e) {
+	        e.stopPropagation();
+	        this._search(this._input.value);
+	    },
+	
+	    addTo: function addTo(map) {
+	        L.Control.prototype.addTo.call(this, map);
+	        if (this.options.addBefore) {
+	            this.addBefore(this.options.addBefore);
+	        }
+	        return this;
+	    },
+	
+	    addBefore: function addBefore(id) {
+	        var parentNode = this._parent && this._parent._container;
+	        if (!parentNode) {
+	            parentNode = this._map && this._map._controlCorners[this.getPosition()];
+	        }
+	        if (!parentNode) {
+	            this.options.addBefore = id;
+	        } else {
+	            for (var i = 0, len = parentNode.childNodes.length; i < len; i++) {
+	                var it = parentNode.childNodes[i];
+	                if (id === it._id) {
+	                    parentNode.insertBefore(this._container, it);
+	                    break;
+	                }
+	            }
+	        }
+	
+	        return this;
 	    }
+	
 	});
 	
 	window.nsGmx = window.nsGmx || {};
@@ -248,6 +260,7 @@
 	        this._list.style.top = this._input.offsetTop + this._input.offsetHeight + 2 + 'px';
 	        this._list.style.left = this._input.offsetLeft + 'px';
 	        this._input.addEventListener('keydown', this._handleKey.bind(this));
+	        this._input.addEventListener('click', this._handleInputClick.bind(this));
 	        this._input.addEventListener('focus', this._handleFocus.bind(this));
 	        this._list.addEventListener('keydown', this._handleKey.bind(this));
 	        this._list.addEventListener('wheel', this._handleWheel.bind(this));
@@ -257,6 +270,11 @@
 	    }
 	
 	    _createClass(ResultView, [{
+	        key: '_handleInputClick',
+	        value: function _handleInputClick(e) {
+	            e.stopPropagation();
+	        }
+	    }, {
 	        key: '_handleFocus',
 	        value: function _handleFocus(e) {
 	            if (this.index >= 0) {
@@ -780,7 +798,7 @@
 	        this.showOnMap = showOnMap;
 	        this.showOnSelect = false;
 	        this.showOnEnter = false;
-	        this._cadastreLayers = [{ id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
+	        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
 	        // ,
 	        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
 	        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
@@ -810,15 +828,16 @@
 	                    return it;
 	                }
 	            }
-	            return null;
+	            return this._cadastreLayers[0];
 	        }
 	    }, {
 	        key: 'find',
 	        value: function find(value, limit, strong, retrieveGeometry) {
 	            var _this = this;
 	
+	            var cadastreLayer = this.getCadastreLayer(value);
 	            return new Promise(function (resolve) {
-	                var req = new Request(_this._serverBase + '/typeahead?limit=' + limit + '&skip=0&text=' + value);
+	                var req = new Request(_this._serverBase + '/typeahead?limit=' + limit + '&skip=0&text=' + value + '&type=' + cadastreLayer.id);
 	                var headers = new Headers();
 	                headers.append('Content-Type', 'application/json');
 	                var init = {

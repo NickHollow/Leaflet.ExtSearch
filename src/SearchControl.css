@@ -7,8 +7,23 @@
   user-select: none;
 }
 
-.leaflet-ext-search input, .leaflet-ext-search-list {
-    width: 600px;
+.leaflet-ext-search {
+    clear: none;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    border-radius: 3px;
+    background-color: white;    
+}
+
+.leaflet-ext-search input {
+    height: 30px;
+    width: 362px;
+    border-style: none;
+    text-indent: 10px;
+    text-overflow: ellipsis;
+}
+
+.leaflet-ext-search, .leaflet-ext-search-list {
+    width: 400px;
 }
 
 .leaflet-ext-search-list{    
@@ -29,15 +44,19 @@
     padding: 0px;    
 }
 
+.leaflet-ext-search-list ul li {
+    padding: 10px;
+    border-top: 1px solid gainsboro;
+}
+
 .leaflet-ext-search .leaflet-ext-search-button {
-    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-    border-radius: 3px;    
-    padding: 1px 4px 1px 4px;
-    border: 1px solid lightslategray;
-    background-color: lightsteelblue;
+    height: 30px;
+    width: 30px;
+    padding: 1px 4px 1px 4px;        
     font-weight: bold;
     float: right;
-    cursor: pointer;   
+    cursor: pointer;  
+    border-style: none;
 }
 
 .leaflet-ext-search .leaflet-ext-search-button-collapsed::before {

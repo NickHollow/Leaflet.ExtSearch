@@ -91,39 +91,16 @@ let SearchControl = L.Control.extend({
                 this._renderer.render(features, this.options.style);                
             }            
         });
-    },
-    _handleCollapse: function(e){
-        e.preventDefault();
-        let btn = e.target;
-        let expanded = L.DomUtil.hasClass (btn, 'leaflet-ext-search-button-expanded');
-        if (expanded) {
-            L.DomUtil.removeClass (btn, 'leaflet-ext-search-button-expanded');
-            L.DomUtil.addClass (btn, 'leaflet-ext-search-button-collapsed');
-            this._input.style.display = 'none';
-        }
-        else {
-            L.DomUtil.removeClass (btn, 'leaflet-ext-search-button-collapsed');
-            L.DomUtil.addClass (btn, 'leaflet-ext-search-button-expanded');
-            this._input.style.display = 'inline';
-        }
-    },
+    },    
     onAdd: function(map) {
         this._container = L.DomUtil.create('div', 'leaflet-ext-search');
-        this._container.innerHTML = `<input type="text" value="" placeholder="${this.options.placeHolder}" /><span class="leaflet-ext-search-button leaflet-ext-search-button-expanded"></span>`;
+        this._container.innerHTML = `<input type="text" value="" placeholder="${this.options.placeHolder}" /><span class="leaflet-ext-search-button leaflet-gmx-iconSvg leaflet-gmx-iconSvg-gmxprint svgIcon"></span>`;
         this._input = this._container.querySelector('input');
-
-        // const style = getComputedStyle (map._container);
-        // const matches = (/\d+/g).exec (style.width);
-        // if(matches && matches.length){
-        //     const width = Number.parseInt (matches[0]) - 50;
-        //     this._input.style.width = `${width}px`;
-        // }
-
-        let button = this._container.querySelector('.leaflet-ext-search-button');
-        button.addEventListener ('click', this._handleCollapse.bind(this));
-              
         this._input.addEventListener('input', this._handleChange.bind(this));
         this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
+
+        this._button = this._container.querySelector('.leaflet-ext-search-button');
+        this._button.addEventListener('click', this._handleSearch.bind(this));
 
         this.results = new ResultView({
             input: this._input,
@@ -134,7 +111,41 @@ let SearchControl = L.Control.extend({
         this._renderer = this.options.renderer || new GmxRenderer(map);
 
         return this._container;
+    },
+
+    _handleSearch: function (e) {
+         e.stopPropagation();
+         this._search (this._input.value);
+    },
+
+    addTo: function (map) {
+        L.Control.prototype.addTo.call(this, map);
+        if (this.options.addBefore) {
+            this.addBefore(this.options.addBefore);
+        }
+        return this;
+    },
+
+    addBefore: function (id) {
+        var parentNode = this._parent && this._parent._container;
+        if (!parentNode) {
+            parentNode = this._map && this._map._controlCorners[this.getPosition()];
+        }
+        if (!parentNode) {
+            this.options.addBefore = id;
+        } else {
+            for (var i = 0, len = parentNode.childNodes.length; i < len; i++) {
+                var it = parentNode.childNodes[i];
+                if (id === it._id) {
+                    parentNode.insertBefore(this._container, it);
+                    break;
+                }
+            }
+        }
+
+        return this;
     }
+
 });
 
 window.nsGmx = window.nsGmx || {};

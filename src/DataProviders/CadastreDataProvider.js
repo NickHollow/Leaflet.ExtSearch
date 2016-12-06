@@ -7,12 +7,12 @@ class CadastreDataProvider {
         this.showOnMap = showOnMap;
         this.showOnSelect = false;
         this.showOnEnter = false;
-        this._cadastreLayers = [
-			{id: 5, title: 'ОКС', 		reg: /^\d\d:\d+:\d+:\d+:\d+$/},
+        this._cadastreLayers = [			
 			{id: 1, title: 'Участок', 	reg: /^\d\d:\d+:\d+:\d+$/},
 			{id: 2, title: 'Квартал',	reg: /^\d\d:\d+:\d+$/},
 			{id: 3, title: 'Район', 	reg: /^\d\d:\d+$/},
 			{id: 4, title: 'Округ', 	reg: /^\d\d$/},
+            {id: 5, title: 'ОКС', 		reg: /^\d\d:\d+:\d+:\d+:\d+$/},
 			{id: 10, title: 'ЗОУИТ', 	reg: /^\d+\.\d+\.\d+/}
 			// ,
 			// {id: 7, title: 'Границы', 	reg: /^\w+$/},
@@ -36,11 +36,12 @@ class CadastreDataProvider {
             if (it.id === type) { return it; }
             if (it.reg.exec(str)) { return it; }
         }
-        return null;
+        return this._cadastreLayers[0];
     }
-    find(value, limit, strong, retrieveGeometry){       
+    find(value, limit, strong, retrieveGeometry){   
+        const cadastreLayer = this.getCadastreLayer(value);    
         return new Promise(resolve => {
-            let req = new Request(`${this._serverBase}/typeahead?limit=${limit}&skip=0&text=${value}`);
+            let req = new Request(`${this._serverBase}/typeahead?limit=${limit}&skip=0&text=${value}&type=${cadastreLayer.id}`);
             let headers = new Headers();
             headers.append('Content-Type','application/json');
             let init = {
