@@ -16,6 +16,9 @@
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
+	let cnInterface = window.nsGmx ? window.nsGmx.cadastre : null,
+		cadastreLayerGroup = cnInterface ? cnInterface.afterViewer({notHideDrawing:true}, map) : null;
+
     let searchControl = new nsGmx.SearchControl(   
     {
         placeHolder: 'Поиск по кадастру, адресам, координатам',
@@ -42,7 +45,14 @@
                 limit: 10,
                 tolerance: 2048,
                 onFetch: function (response) {
-                    console.log(response);
+                    // console.log(response);
+					if (cadastreLayerGroup && response && response.features) {
+						if (!map.hasLayer(cadastreLayerGroup)) {
+							cadastreLayerGroup.addTo(map);
+						}
+						var cn = response.features[0].attrs.cn;
+						cnInterface.searchHook(cn);
+					}
                 },
             }),            
         ],
