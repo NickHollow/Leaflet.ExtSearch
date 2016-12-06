@@ -45,13 +45,26 @@
                 limit: 10,
                 tolerance: 2048,
                 onFetch: function (response) {
-                    // console.log(response);
-					if (cadastreLayerGroup && response && response.features) {
-						if (!map.hasLayer(cadastreLayerGroup)) {
-							cadastreLayerGroup.addTo(map);
+					if (response && response.features) {
+						// console.log(response);
+						var feature = response.features[0];
+						if (cadastreLayerGroup) {
+							if (!map.hasLayer(cadastreLayerGroup)) {
+								cadastreLayerGroup.addTo(map);
+							}
+							cnInterface.searchHook(feature.attrs.cn);
+						} else {
+							var R = 6378137,
+								crs = L.Projection.SphericalMercator,
+								bounds = map.getPixelBounds(),
+								ne = map.options.crs.project(map.unproject(bounds.getTopRight())),
+								sw = map.options.crs.project(map.unproject(bounds.getBottomLeft())),
+								latLngBounds = L.latLngBounds(
+									crs.unproject(L.point(feature.extent.xmin, feature.extent.ymin).divideBy(R)),
+									crs.unproject(L.point(feature.extent.xmax, feature.extent.ymax).divideBy(R))
+								);
+							map.fitBounds(latLngBounds, {reset: true});
 						}
-						var cn = response.features[0].attrs.cn;
-						cnInterface.searchHook(cn);
 					}
                 },
             }),            
