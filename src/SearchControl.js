@@ -94,7 +94,7 @@ let SearchControl = L.Control.extend({
     },    
     onAdd: function(map) {
         this._container = L.DomUtil.create('div', 'leaflet-ext-search');
-        this._container.innerHTML = `<input type="text" value="" placeholder="${this.options.placeHolder}" /><span class="leaflet-ext-search-button leaflet-gmx-iconSvg leaflet-gmx-iconSvg-gmxprint svgIcon"></span>`;
+        this._container.innerHTML = `<input type="text" value="" placeholder="${this.options.placeHolder}" /><span class="leaflet-ext-search-button"></span>`;
         this._input = this._container.querySelector('input');
         this._input.addEventListener('input', this._handleChange.bind(this));
         this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
@@ -110,6 +110,7 @@ let SearchControl = L.Control.extend({
 
         this._renderer = this.options.renderer || new GmxRenderer(map);
 
+        map.on ('click', this.results.hide.bind(this.results));
         return this._container;
     },
 

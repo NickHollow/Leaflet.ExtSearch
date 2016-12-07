@@ -53,15 +53,15 @@
 	
 	__webpack_require__(1);
 	
-	var _ResultView = __webpack_require__(5);
+	var _ResultView = __webpack_require__(6);
 	
-	var _GmxRenderer = __webpack_require__(6);
+	var _GmxRenderer = __webpack_require__(7);
 	
-	var _OsmDataProvider = __webpack_require__(7);
+	var _OsmDataProvider = __webpack_require__(8);
 	
-	var _CoordinatesDataProvider = __webpack_require__(8);
+	var _CoordinatesDataProvider = __webpack_require__(9);
 	
-	var _CadastreDataProvider = __webpack_require__(9);
+	var _CadastreDataProvider = __webpack_require__(10);
 	
 	var SearchControl = L.Control.extend({
 	    includes: [L.Mixin.Events],
@@ -173,6 +173,7 @@
 	
 	        this._renderer = this.options.renderer || new _GmxRenderer.GmxRenderer(map);
 	
+	        map.on('click', this.results.hide.bind(this.results));
 	        return this._container;
 	    },
 	
@@ -226,7 +227,8 @@
 /* 2 */,
 /* 3 */,
 /* 4 */,
-/* 5 */
+/* 5 */,
+/* 6 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -433,7 +435,7 @@
 	exports.ResultView = ResultView;
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -485,7 +487,7 @@
 	exports.GmxRenderer = GmxRenderer;
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -677,7 +679,7 @@
 	exports.OsmDataProvider = OsmDataProvider;
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -768,7 +770,7 @@
 	exports.CoordinatesDataProvider = CoordinatesDataProvider;
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';

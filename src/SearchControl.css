@@ -8,7 +8,7 @@
 }
 
 .leaflet-ext-search {
-    clear: none;
+    clear: none !important;
     box-shadow: 0 1px 5px rgba(0,0,0,0.4);
     border-radius: 3px;
     background-color: white;    
@@ -50,19 +50,15 @@
 }
 
 .leaflet-ext-search .leaflet-ext-search-button {
+    margin-top: 1px;
     height: 30px;
-    width: 30px;
-    padding: 1px 4px 1px 4px;        
+    width: 30px;            
     font-weight: bold;
     float: right;
     cursor: pointer;  
     border-style: none;
+    background-image: url('svg/search.svg');
+    background-repeat: space;
+    background-position: center;
 }
 
-.leaflet-ext-search .leaflet-ext-search-button-collapsed::before {
-    content: '\25c4';
-}
-
-.leaflet-ext-search .leaflet-ext-search-button-expanded::before {
-    content: '\25ba';
-}
