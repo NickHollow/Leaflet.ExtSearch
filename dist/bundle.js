@@ -305,60 +305,78 @@
 	        key: '_handleKey',
 	        value: function _handleKey(e) {
 	            if (this.listVisible()) {
-	                if (e.key === 'ArrowDown') {
-	                    e.preventDefault();
-	                    if (this.index < 0) {
-	                        this.index = 0;
-	                    } else if (0 <= this.index && this.index < this.count - 1) {
-	                        var _el = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                        L.DomUtil.removeClass(_el, 'leaflet-ext-search-list-selected');
-	                        ++this.index;
-	                    } else {
-	                        var _el2 = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                        L.DomUtil.removeClass(_el2, 'leaflet-ext-search-list-selected');
-	                        this.index = this.count - 1;
-	                    }
-	                    var el = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                    L.DomUtil.addClass(el, 'leaflet-ext-search-list-selected');
-	                    this.selectItem(this.index);
-	                    el.focus();
-	                } else if (e.key === 'ArrowUp') {
-	                    e.preventDefault();
-	                    if (this.index > 0) {
-	                        var _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                        L.DomUtil.removeClass(_el3, 'leaflet-ext-search-list-selected');
-	                        --this.index;
-	                        _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                        L.DomUtil.addClass(_el3, 'leaflet-ext-search-list-selected');
+	                switch (e.keyCode) {
+	                    // ArroLeft / ArrowRight
+	                    case 37:
+	                    case 39:
+	                        e.stopPropagation();
+	                        break;
+	                    // ArrowDown
+	                    case 40:
+	                        e.preventDefault();
+	                        e.stopPropagation();
+	                        if (this.index < 0) {
+	                            this.index = 0;
+	                        } else if (0 <= this.index && this.index < this.count - 1) {
+	                            var _el = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                            L.DomUtil.removeClass(_el, 'leaflet-ext-search-list-selected');
+	                            ++this.index;
+	                        } else {
+	                            var _el2 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                            L.DomUtil.removeClass(_el2, 'leaflet-ext-search-list-selected');
+	                            this.index = this.count - 1;
+	                        }
+	                        var el = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                        L.DomUtil.addClass(el, 'leaflet-ext-search-list-selected');
 	                        this.selectItem(this.index);
-	                        _el3.focus();
-	                    } else if (this.index === 0) {
+	                        el.focus();
+	                        break;
+	                    // ArrowUp
+	                    case 38:
+	                        e.preventDefault();
+	                        e.stopPropagation();
+	                        if (this.index > 0) {
+	                            var _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                            L.DomUtil.removeClass(_el3, 'leaflet-ext-search-list-selected');
+	                            --this.index;
+	                            _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                            L.DomUtil.addClass(_el3, 'leaflet-ext-search-list-selected');
+	                            this.selectItem(this.index);
+	                            _el3.focus();
+	                        } else if (this.index === 0) {
+	                            this._input.focus();
+	                            this._input.value = this._inputText;
+	                        }
+	                        break;
+	                    // Enter
+	                    case 13:
+	                        if (this.index < 0 && this._input.value && typeof this._onEnter == 'function') {
+	                            var text = this._input.value;
+	                            this._input.focus();
+	                            this._input.setSelectionRange(text.length, text.length);
+	                            this.hide();
+	                            this._onEnter(text);
+	                        } else {
+	                            this.complete(this.index);
+	                        }
+	                        break;
+	                    // Escape
+	                    case 27:
+	                        if (this.index < 0) {
+	                            this.hide();
+	                        }
 	                        this._input.focus();
 	                        this._input.value = this._inputText;
-	                    }
-	                } else if (e.key === 'Enter') {
-	                    if (this.index < 0 && this._input.value && typeof this._onEnter == 'function') {
-	                        var text = this._input.value;
-	                        this._input.focus();
-	                        this._input.setSelectionRange(text.length, text.length);
-	                        this.hide();
-	                        this._onEnter(text);
-	                    } else {
-	                        this.complete(this.index);
-	                    }
-	                } else if (e.key === 'Escape') {
-	                    if (this.index < 0) {
-	                        this.hide();
-	                    }
-	                    this._input.focus();
-	                    this._input.value = this._inputText;
+	                        break;
+	                    default:
+	                        break;
 	                }
 	            } else {
-	                if (e.key === 'Enter' && this._input.value && typeof this._onEnter == 'function') {
+	                if (e.keyCode === 13 && this._input.value && typeof this._onEnter == 'function') {
 	                    var _text = this._input.value;
 	                    this._input.setSelectionRange(_text.length, _text.length);
 	                    this._onEnter(_text);
-	                } else if (e.key === 'Escape') {
+	                } else if (e.keyCode === 27) {
 	                    this._input.value = '';
 	                    this.index = -1;
 	                    this._input.focus();
@@ -569,6 +587,7 @@
 	            var init = {
 	                method: 'GET',
 	                mode: 'cors',
+	                credentials: 'include',
 	                cache: 'default'
 	            };
 	            return new Promise(function (resolve, reject) {
@@ -621,6 +640,7 @@
 	            var init = {
 	                method: 'GET',
 	                mode: 'cors',
+	                credentials: 'include',
 	                cache: 'default'
 	            };
 	            return new Promise(function (resolve, reject) {

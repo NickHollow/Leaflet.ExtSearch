@@ -43,10 +43,10 @@ class CadastreDataProvider {
         return new Promise(resolve => {
             let req = new Request(`${this._serverBase}/typeahead?limit=${limit}&skip=0&text=${value}&type=${cadastreLayer.id}`);
             let headers = new Headers();
-            headers.append('Content-Type','application/json');
+            headers.append('Content-Type','application/json');            
             let init = {
                 method: 'GET',            
-                mode: 'cors',
+                mode: 'cors',                
                 cache: 'default',
             };
             fetch (req, init)
@@ -80,7 +80,7 @@ class CadastreDataProvider {
                 headers.append('Content-Type','application/json');
                 let init = {
                     method: 'GET',            
-                    mode: 'cors',
+                    mode: 'cors',                    
                     cache: 'default',
                 };
                 fetch (req, init)

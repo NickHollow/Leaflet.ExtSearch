@@ -49,69 +49,84 @@ class ResultView {
 
     _handleKey(e){
         if(this.listVisible()) {
-            if(e.key === 'ArrowDown'){            
-                e.preventDefault();                 
-                if (this.index < 0){
-                    this.index = 0;
-                }
-                else if (0 <= this.index && this.index < this.count - 1){
+            switch (e.keyCode){
+                // ArroLeft / ArrowRight
+                case 37:
+                case 39:
+                    e.stopPropagation();
+                    break;
+                // ArrowDown
+                case 40:
+                    e.preventDefault();
+                    e.stopPropagation();                 
+                    if (this.index < 0){
+                        this.index = 0;
+                    }
+                    else if (0 <= this.index && this.index < this.count - 1){
+                        let el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                        L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                        ++this.index;
+                    }   
+                    else {
+                        let el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                        L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                        this.index = this.count - 1;
+                    }
                     let el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                    ++this.index;
-                }   
-                else {
-                    let el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                    this.index = this.count - 1;
-                }
-                let el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected'); 
-                this.selectItem(this.index);
-                el.focus();          
-            }
-            else if (e.key === 'ArrowUp'){
-                e.preventDefault();            
-                if(this.index > 0){
-                    let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
-                    L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                    --this.index;
-                    el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                    L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected');
+                    L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected'); 
                     this.selectItem(this.index);
-                    el.focus();            
-                }
-                else if (this.index === 0) {                    
-                    this._input.focus();                
-                    this._input.value = this._inputText;                    
-                }            
-            }
-            else if (e.key === 'Enter'){
-                if (this.index < 0 && this._input.value && typeof this._onEnter == 'function'){
-                    const text = this._input.value;
+                    el.focus();
+                    break;
+                // ArrowUp
+                case 38:
+                    e.preventDefault(); 
+                    e.stopPropagation();           
+                    if(this.index > 0){
+                        let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
+                        L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                        --this.index;
+                        el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                        L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected');
+                        this.selectItem(this.index);
+                        el.focus();            
+                    }
+                    else if (this.index === 0) {                    
+                        this._input.focus();                
+                        this._input.value = this._inputText;                    
+                    } 
+                    break;
+                // Enter
+                case 13:
+                    if (this.index < 0 && this._input.value && typeof this._onEnter == 'function'){
+                        const text = this._input.value;
+                        this._input.focus();
+                        this._input.setSelectionRange(text.length, text.length);                                      
+                        this.hide();                        
+                        this._onEnter (text);
+                    }
+                    else {
+                        this.complete (this.index);
+                    }
+                    break;
+                // Escape
+                case 27:
+                    if (this.index < 0) {
+                        this.hide ();
+                    }
                     this._input.focus();
-                    this._input.setSelectionRange(text.length, text.length);                                      
-                    this.hide();                        
-                    this._onEnter (text);
-                }
-                else {
-                    this.complete (this.index);
-                }                
-            }
-            else if (e.key === 'Escape'){
-                if (this.index < 0) {
-                    this.hide ();
-                }
-                this._input.focus();
-                this._input.value = this._inputText;                            
-            } 
+                    this._input.value = this._inputText;
+                    break;                 
+                default:
+                    break;
+            }            
         }
-        else {
-            if (e.key === 'Enter' && this._input.value && typeof this._onEnter == 'function'){ 
+        else {            
+            if (e.keyCode === 13 && this._input.value && typeof this._onEnter == 'function'){ 
                 const text = this._input.value;
                 this._input.setSelectionRange(text.length, text.length);
                 this._onEnter (text);
             }
-            else if (e.key === 'Escape'){
+            else if (e.keyCode === 27){
                 this._input.value = '';
                 this.index = -1;
                 this._input.focus();                

@@ -40,10 +40,11 @@ class OsmDataProvider {
         const query = `RequestType=ID&ID=${obj.ObjCode}&TypeCode=${obj.TypeCode}&UseOSM=1`;        
         let req = new Request(`${this._serverBase}/SearchObject/SearchAddress.ashx?${query}${this._key}`);
         let headers = new Headers();
-        headers.append('Content-Type','application/json');
+        headers.append('Content-Type','application/json');        
         let init = {
             method: 'GET',            
             mode: 'cors',
+            credentials: 'include',        
             cache: 'default',
         };
         return new Promise((resolve, reject) => {
@@ -89,10 +90,11 @@ class OsmDataProvider {
         const query = `RequestType=SearchObject&IsStrongSearch=${_strong}&WithoutGeometry=${_withoutGeometry}&UseOSM=1&Limit=${limit}&SearchString=${encodeURIComponent(value)}`;        
         let req = new Request(`${this._serverBase}/SearchObject/SearchAddress.ashx?${query}${this._key}`);
         let headers = new Headers();
-        headers.append('Content-Type','application/json');
+        headers.append('Content-Type','application/json');        
         let init = {
             method: 'GET',
-            mode: 'cors',
+            mode: 'cors', 
+            credentials: 'include',
             cache: 'default',
         };
         return new Promise((resolve, reject) => {
