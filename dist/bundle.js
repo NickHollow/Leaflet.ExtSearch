@@ -871,19 +871,20 @@
 	                    return response.text();
 	                }).then(function (response) {
 	                    var json = JSON.parse(response);
-	                    if (json.status === 200) {
-	                        var rs = json.results.map(function (x) {
-	                            return {
-	                                name: x.title,
-	                                properties: x,
-	                                provider: _this,
-	                                query: value
-	                            };
-	                        });
-	                        resolve(rs);
-	                    } else {
-	                        resolve(json);
-	                    }
+	                    // if(json.status === 200){
+	                    var rs = json.results.map(function (x) {
+	                        return {
+	                            name: x.title,
+	                            properties: x,
+	                            provider: _this,
+	                            query: value
+	                        };
+	                    });
+	                    resolve(rs);
+	                    // }
+	                    // else {
+	                    // resolve(json);
+	                    // }                                       
 	                });
 	            });
 	        }

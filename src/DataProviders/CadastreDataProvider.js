@@ -53,7 +53,7 @@ class CadastreDataProvider {
             .then(response => response.text())
             .then(response => {
                 const json = JSON.parse (response); 
-                if(json.status === 200){
+                // if(json.status === 200){
                     let rs = json.results.map(x => {
                         return {
                             name: x.title,
@@ -63,10 +63,10 @@ class CadastreDataProvider {
                         };
                     });
                     resolve(rs);
-                }
-                else {
-                    resolve(json);
-                }                                       
+                // }
+                // else {
+                    // resolve(json);
+                // }                                       
                                     
             });
         });
