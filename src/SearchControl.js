@@ -9,6 +9,7 @@ let SearchControl = L.Control.extend({
     includes: [L.Mixin.Events],
     initialize: function(options) {    
         L.setOptions(this, options);
+        this._allowSuggestion = true;
     },
     _chain (tasks, state) {        
         return tasks.reduce(
@@ -16,35 +17,45 @@ let SearchControl = L.Control.extend({
             new Promise ((resolve, reject) => resolve (state))
         );
     },
-    _handleChange: function(e){
-        const text = this._input.value;
-        if(text.length){
-
-            let tasks = this.options.providers
-                .filter (provider => provider.showSuggestion)
-                .map(provider => {
-                    return state => {
-                        return new Promise(resolve => {
-                            if (this.options.showFirst && state.completed) {
+    _suggest: function(text){
+        let tasks = 
+            this.options.providers
+            .filter (provider => provider.showSuggestion)
+            .map(provider => {
+                return state => {
+                    return new Promise(resolve => {
+                        if (this.options.showFirst && state.completed) {
+                            resolve(state);
+                        }
+                        else {
+                            provider
+                            .find (text, this.options.limit, false, false)
+                            .then(response => {
+                                state.completed = this.options.showFirst && response.length > 0;
+                                state.response = state.response.concat(response);                              
                                 resolve(state);
-                            }
-                            else {
-                                provider
-                                .find (text, this.options.limit, false, false)
-                                .then(response => {
-                                    state.completed = this.options.showFirst && response.length > 0;
-                                    state.response = state.response.concat(response);                                
-                                    resolve(state);
-                                });                          
-                            }
-                        });
-                    };
-                });
-
-            this._chain (tasks, { completed: false, response: [] }).then(state => {                
-                this.results.show(state.response);
+                            });                          
+                        }
+                    });
+                };
             });
-        }        
+        this._chain (tasks, { completed: false, response: [] }).then(state => {                
+            this._allowSuggestion = true;
+            this.results.show(state.response, text.trim());
+        });
+    },
+    _handleChange: function(e){        
+        const text = this._input.value;
+        this._currentTextLength = text.length;
+        if(text.length){
+            if (this._allowSuggestion) {
+                this._allowSuggestion = false;
+                this._suggest(text);
+            }
+            else {                        
+                this._suggest(text);
+            }
+        }
     },
     _handleMouseMove: function(e){
         e.stopPropagation();
@@ -71,13 +82,13 @@ let SearchControl = L.Control.extend({
             });
 
             this._chain (tasks, {completed: false, response: []})
-            .then(state => {
-                const features = state.response
-                .filter(x => x.provider.showOnMap)
-                .map(x => x.feature);
-                if(features.length) {
-                    this._renderer.render([features[0]], this.options.style);
-                }                
+            .then(state => {                
+                if(state.response.length){
+                    let item = state.response[0];
+                    item.provider
+                    .fetch(item.properties)
+                    .then(response => {});
+                }
             });
     },
     _selectItem: function(item){        

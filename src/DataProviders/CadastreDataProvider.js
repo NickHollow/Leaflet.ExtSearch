@@ -6,7 +6,7 @@ class CadastreDataProvider {
         this.showSuggestion = true;
         this.showOnMap = showOnMap;
         this.showOnSelect = false;
-        this.showOnEnter = false;
+        this.showOnEnter = true;
         this._cadastreLayers = [			
 			{id: 1, title: 'Участок', 	reg: /^\d\d:\d+:\d+:\d+$/},
 			{id: 2, title: 'Квартал',	reg: /^\d\d:\d+:\d+$/},
@@ -93,7 +93,7 @@ class CadastreDataProvider {
                         }
                         let rs = json.features.map(x => {
                             return {
-                                name: x.attrs.name,
+                                name: x.attrs.name || x.attrs.cn || x.attrs.id,
                                 properties: x,
                                 provider: this,
                                 query: obj,
@@ -105,9 +105,7 @@ class CadastreDataProvider {
                     }
                     else {
                         resolve(json);
-                    }
-                    
-                    
+                    }                                        
                 });
             }
             else {

@@ -2,7 +2,7 @@
 class CoordinatesDataProvider {
     constructor({onFetch, showOnMap}){
         this._onFetch = onFetch;
-        this.showSuggestion = false;
+        this.showSuggestion = true;
         this.showOnMap = showOnMap;
         this.showOnSelect = false;
         this.showOnEnter = true;

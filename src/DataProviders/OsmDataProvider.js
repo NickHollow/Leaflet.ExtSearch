@@ -115,11 +115,13 @@ class OsmDataProvider {
                                 return a;
                             }, {});
                             return {
+                                name: x.ObjNameShort,
                                 feature: {
                                     type: 'Feature',
                                     geometry: g,
                                     properties: props,                            
                                 },
+                                properties: props,
                                 provider: this,
                                 query: value,
                             };

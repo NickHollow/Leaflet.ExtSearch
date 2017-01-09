@@ -49,6 +49,10 @@
     border-top: 1px solid gainsboro;
 }
 
+.leaflet-ext-search-list-item-highlight{
+    font-weight: bold;
+}
+
 .leaflet-ext-search .leaflet-ext-search-button {
     margin-top: 1px;
     height: 30px;

@@ -67,6 +67,7 @@
 	    includes: [L.Mixin.Events],
 	    initialize: function initialize(options) {
 	        L.setOptions(this, options);
+	        this._allowSuggestion = true;
 	    },
 	    _chain: function _chain(tasks, state) {
 	        return tasks.reduce(function (prev, next) {
@@ -76,33 +77,41 @@
 	        }));
 	    },
 	
-	    _handleChange: function _handleChange(e) {
+	    _suggest: function _suggest(text) {
 	        var _this = this;
 	
-	        var text = this._input.value;
-	        if (text.length) {
-	
-	            var tasks = this.options.providers.filter(function (provider) {
-	                return provider.showSuggestion;
-	            }).map(function (provider) {
-	                return function (state) {
-	                    return new Promise(function (resolve) {
-	                        if (_this.options.showFirst && state.completed) {
+	        var tasks = this.options.providers.filter(function (provider) {
+	            return provider.showSuggestion;
+	        }).map(function (provider) {
+	            return function (state) {
+	                return new Promise(function (resolve) {
+	                    if (_this.options.showFirst && state.completed) {
+	                        resolve(state);
+	                    } else {
+	                        provider.find(text, _this.options.limit, false, false).then(function (response) {
+	                            state.completed = _this.options.showFirst && response.length > 0;
+	                            state.response = state.response.concat(response);
 	                            resolve(state);
-	                        } else {
-	                            provider.find(text, _this.options.limit, false, false).then(function (response) {
-	                                state.completed = _this.options.showFirst && response.length > 0;
-	                                state.response = state.response.concat(response);
-	                                resolve(state);
-	                            });
-	                        }
-	                    });
-	                };
-	            });
-	
-	            this._chain(tasks, { completed: false, response: [] }).then(function (state) {
-	                _this.results.show(state.response);
-	            });
+	                        });
+	                    }
+	                });
+	            };
+	        });
+	        this._chain(tasks, { completed: false, response: [] }).then(function (state) {
+	            _this._allowSuggestion = true;
+	            _this.results.show(state.response, text.trim());
+	        });
+	    },
+	    _handleChange: function _handleChange(e) {
+	        var text = this._input.value;
+	        this._currentTextLength = text.length;
+	        if (text.length) {
+	            if (this._allowSuggestion) {
+	                this._allowSuggestion = false;
+	                this._suggest(text);
+	            } else {
+	                this._suggest(text);
+	            }
 	        }
 	    },
 	    _handleMouseMove: function _handleMouseMove(e) {
@@ -131,13 +140,9 @@
 	        });
 	
 	        this._chain(tasks, { completed: false, response: [] }).then(function (state) {
-	            var features = state.response.filter(function (x) {
-	                return x.provider.showOnMap;
-	            }).map(function (x) {
-	                return x.feature;
-	            });
-	            if (features.length) {
-	                _this2._renderer.render([features[0]], _this2.options.style);
+	            if (state.response.length) {
+	                var item = state.response[0];
+	                item.provider.fetch(item.properties).then(function (response) {});
 	            }
 	        });
 	    },
@@ -266,7 +271,9 @@
 	        this._input.addEventListener('focus', this._handleFocus.bind(this));
 	        this._list.addEventListener('keydown', this._handleKey.bind(this));
 	        this._list.addEventListener('wheel', this._handleWheel.bind(this));
-	        // this._list.addEventListener('mousemove', this._handleWheel.bind(this));
+	        L.DomEvent.disableClickPropagation(this._list).disableScrollPropagation(this._list);
+	        // this._list.addEventListener('mousewheel', this._handleWheel.bind(this));
+	        // this._list.addEventListener('MozMousePixelScroll', this._handleWheel.bind(this));       
 	        this._input.parentElement.appendChild(this._list);
 	        this._input.addEventListener('input', this._handleChange.bind(this));
 	    }
@@ -294,11 +301,6 @@
 	    }, {
 	        key: '_handleWheel',
 	        value: function _handleWheel(e) {
-	            e.stopPropagation();
-	        }
-	    }, {
-	        key: '_handleMouseMove',
-	        value: function _handleMouseMove(e) {
 	            e.stopPropagation();
 	        }
 	    }, {
@@ -350,7 +352,7 @@
 	                        break;
 	                    // Enter
 	                    case 13:
-	                        if (this.index < 0 && this._input.value && typeof this._onEnter == 'function') {
+	                        if (this.index < 0 && this._input.value && typeof this._onEnter === 'function') {
 	                            var text = this._input.value;
 	                            this._input.focus();
 	                            this._input.setSelectionRange(text.length, text.length);
@@ -421,13 +423,30 @@
 	        }
 	    }, {
 	        key: 'show',
-	        value: function show(items) {
+	        value: function show(items, highlight) {
 	            if (items.length) {
 	                this._item = null;
 	                this.index = -1;
 	                this._items = items;
-	                var html = '<ul>' + this._items.map(function (x, i) {
-	                    return '<li tabindex=' + i + '>' + x.name + '</li>';
+	                var html = '<ul>' + this._items.filter(function (x) {
+	                    return x.name && x.name.length;
+	                }).map(function (x, i) {
+	                    var name = '<span class="leaflet-ext-search-list-item-normal">' + x.name + '</span>';
+	                    if (highlight && highlight.length) {
+	                        var start = x.name.toLowerCase().indexOf(highlight.toLowerCase());
+	                        if (start != -1) {
+	                            var head = x.name.substr(0, start);
+	                            if (head.length) {
+	                                head = '<span class="leaflet-ext-search-list-item-normal">' + head + '</span>';
+	                            }
+	                            var tail = x.name.substr(start + highlight.length);
+	                            if (tail.length) {
+	                                tail = '<span class="leaflet-ext-search-list-item-normal">' + tail + '</span>';
+	                            }
+	                            name = head + '<span class="leaflet-ext-search-list-item-highlight">' + highlight + '</span>' + tail;
+	                        }
+	                    }
+	                    return '<li tabindex=' + i + '>' + name + '</li>';
 	                }, []).join('') + '</ul>';
 	
 	                this._list.innerHTML = html;
@@ -661,11 +680,13 @@
 	                                    return a;
 	                                }, {});
 	                                return {
+	                                    name: x.ObjNameShort,
 	                                    feature: {
 	                                        type: 'Feature',
 	                                        geometry: g,
 	                                        properties: props
 	                                    },
+	                                    properties: props,
 	                                    provider: _this2,
 	                                    query: value
 	                                };
@@ -720,7 +741,7 @@
 	        _classCallCheck(this, CoordinatesDataProvider);
 	
 	        this._onFetch = onFetch;
-	        this.showSuggestion = false;
+	        this.showSuggestion = true;
 	        this.showOnMap = showOnMap;
 	        this.showOnSelect = false;
 	        this.showOnEnter = true;
@@ -819,7 +840,7 @@
 	        this.showSuggestion = true;
 	        this.showOnMap = showOnMap;
 	        this.showOnSelect = false;
-	        this.showOnEnter = false;
+	        this.showOnEnter = true;
 	        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
 	        // ,
 	        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
@@ -924,7 +945,7 @@
 	                            }
 	                            var rs = json.features.map(function (x) {
 	                                return {
-	                                    name: x.attrs.name,
+	                                    name: x.attrs.name || x.attrs.cn || x.attrs.id,
 	                                    properties: x,
 	                                    provider: _this2,
 	                                    query: obj

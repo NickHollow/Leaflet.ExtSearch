@@ -17,7 +17,9 @@ class ResultView {
         this._input.addEventListener('focus', this._handleFocus.bind(this));
         this._list.addEventListener('keydown', this._handleKey.bind(this));
         this._list.addEventListener('wheel', this._handleWheel.bind(this));
-        // this._list.addEventListener('mousemove', this._handleWheel.bind(this));
+        L.DomEvent.disableClickPropagation(this._list).disableScrollPropagation(this._list);
+        // this._list.addEventListener('mousewheel', this._handleWheel.bind(this));
+        // this._list.addEventListener('MozMousePixelScroll', this._handleWheel.bind(this));       
         this._input.parentElement.appendChild(this._list); 
         this._input.addEventListener('input', this._handleChange.bind(this));
     }
@@ -40,12 +42,8 @@ class ResultView {
     }
 
     _handleWheel (e) {
-        e.stopPropagation();
-    }
-
-    _handleMouseMove(e){
-        e.stopPropagation();
-    }    
+        e.stopPropagation();        
+    } 
 
     _handleKey(e){
         if(this.listVisible()) {
@@ -97,7 +95,7 @@ class ResultView {
                     break;
                 // Enter
                 case 13:
-                    if (this.index < 0 && this._input.value && typeof this._onEnter == 'function'){
+                    if (this.index < 0 && this._input.value && typeof this._onEnter === 'function'){
                         const text = this._input.value;
                         this._input.focus();
                         this._input.setSelectionRange(text.length, text.length);                                      
@@ -166,12 +164,31 @@ class ResultView {
         }        
     }
 
-    show(items) {
+    show(items, highlight) {
         if (items.length) {
             this._item = null;
             this.index = -1;
             this._items = items;
-            const html = '<ul>' + this._items.map((x,i) => `<li tabindex=${i}>${x.name}</li>`, []).join('') + '</ul>';                            
+            const html = '<ul>' + this._items
+            .filter((x) => x.name && x.name.length)
+            .map((x,i) => {
+                let name = `<span class="leaflet-ext-search-list-item-normal">${x.name}</span>`;
+                if (highlight && highlight.length){
+                    const start = x.name.toLowerCase().indexOf (highlight.toLowerCase());
+                    if (start != -1) {
+                        let head =  x.name.substr(0, start);
+                        if(head.length){
+                            head = `<span class="leaflet-ext-search-list-item-normal">${head}</span>`;
+                        }                        
+                        let tail = x.name.substr(start + highlight.length);
+                        if(tail.length){
+                            tail = `<span class="leaflet-ext-search-list-item-normal">${tail}</span>`;
+                        }
+                        name = `${head}<span class="leaflet-ext-search-list-item-highlight">${highlight}</span>${tail}`;
+                    }                                        
+                }                
+                return `<li tabindex=${i}>${name}</li>`;               
+            }, []).join('') + '</ul>';
 
             this._list.innerHTML = html;
             let elements = this._list.querySelectorAll('li');
