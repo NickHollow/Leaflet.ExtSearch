@@ -68,6 +68,7 @@
 	    initialize: function initialize(options) {
 	        L.setOptions(this, options);
 	        this._allowSuggestion = true;
+	        this.options.suggestionTimeout = this.options.suggestionTimeout || 1000;
 	    },
 	    _chain: function _chain(tasks, state) {
 	        return tasks.reduce(function (prev, next) {
@@ -98,34 +99,38 @@
 	            };
 	        });
 	        this._chain(tasks, { completed: false, response: [] }).then(function (state) {
-	            _this._allowSuggestion = true;
 	            _this.results.show(state.response, text.trim());
 	        });
 	    },
 	    _handleChange: function _handleChange(e) {
-	        var text = this._input.value;
-	        this._currentTextLength = text.length;
-	        if (text.length) {
+	        var _this2 = this;
+	
+	        if (this._input.value.length) {
 	            if (this._allowSuggestion) {
 	                this._allowSuggestion = false;
-	                this._suggest(text);
-	            } else {
-	                this._suggest(text);
+	                this._timer = setTimeout(function () {
+	                    clearTimeout(_this2._timer);
+	                    _this2._allowSuggestion = true;
+	                    var text = _this2._input.value;
+	                    _this2._suggest(text);
+	                }, this.options.suggestionTimeout);
 	            }
+	        } else {
+	            this.results.hide();
 	        }
 	    },
 	    _handleMouseMove: function _handleMouseMove(e) {
 	        e.stopPropagation();
 	    },
 	    _search: function _search(text) {
-	        var _this2 = this;
+	        var _this3 = this;
 	
 	        var tasks = this.options.providers.filter(function (provider) {
 	            return provider.showOnEnter;
 	        }).map(function (provider) {
 	            return function (state) {
 	                return new Promise(function (resolve) {
-	                    if (_this2.options.showFirst && state.completed) {
+	                    if (_this3.options.showFirst && state.completed) {
 	                        resolve(state);
 	                    } else {
 	                        var p = provider.find(text, 1, true, true);
@@ -147,7 +152,7 @@
 	        });
 	    },
 	    _selectItem: function _selectItem(item) {
-	        var _this3 = this;
+	        var _this4 = this;
 	
 	        item.provider.fetch(item.properties).then(function (response) {
 	            if (item.provider.showOnSelect && response.length) {
@@ -156,7 +161,7 @@
 	                }).map(function (x) {
 	                    return x.feature;
 	                });
-	                _this3._renderer.render(features, _this3.options.style);
+	                _this4._renderer.render(features, _this4.options.style);
 	            }
 	        });
 	    },
@@ -213,6 +218,10 @@
 	        }
 	
 	        return this;
+	    },
+	
+	    setText: function setText(text) {
+	        this._input.value = text;
 	    }
 	
 	});
@@ -747,34 +756,31 @@
 	        this.showOnEnter = true;
 	        this.fetch = this.fetch.bind(this);
 	        this.find = this.find.bind(this);
-	        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');
-	        this.rxLng = new RegExp('(\\d+\\.?\\d+)\\s*(E|W)');
+	        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)?');
+	        this.rxLng = new RegExp('(\\d+\\.?\\d+)\\s*(E|W)?');
 	    }
 	
 	    _createClass(CoordinatesDataProvider, [{
 	        key: '_parseCoordinates',
 	        value: function _parseCoordinates(value) {
-	            var _this = this;
-	
-	            var coords = value.split(/(,|\\s+)/).reduce(function (a, x) {
-	                var lat = _this.rxLat.exec(x);
-	                if (lat && lat.length) {
-	                    a.lat = parseFloat(lat[1]);
-	                    if (lat[2] == 'S') {
-	                        a.lat = -a.lat;
-	                    }
+	            var coords = value.split(/[\s,]+/);
+	            var a = {};
+	            var lat = this.rxLat.exec(coords[0]);
+	            if (lat && lat.length) {
+	                a.lat = parseFloat(lat[1]);
+	                if (lat[2] == 'S') {
+	                    a.lat = -a.lat;
 	                }
-	                var lng = _this.rxLng.exec(x);
-	                if (lng && lng.length) {
-	                    a.lng = parseFloat(lng[1]);
-	                    if (lng[2] == 'W') {
-	                        a.lng = -a.lng;
-	                    }
+	            }
+	            var lng = this.rxLng.exec(coords[1]);
+	            if (lng && lng.length) {
+	                a.lng = parseFloat(lng[1]);
+	                if (lng[2] == 'W') {
+	                    a.lng = -a.lng;
 	                }
-	                return a;
-	            }, {});
-	            if (coords.hasOwnProperty('lat') && coords.hasOwnProperty('lng')) {
-	                return { type: 'Point', coordinates: [coords.lng, coords.lat] };
+	            }
+	            if (a.hasOwnProperty('lat') && a.hasOwnProperty('lng')) {
+	                return { type: 'Point', coordinates: [a.lng, a.lat] };
 	            } else {
 	                return null;
 	            }
@@ -789,13 +795,13 @@
 	    }, {
 	        key: 'find',
 	        value: function find(value, limit, strong, retrieveGeometry) {
-	            var _this2 = this;
+	            var _this = this;
 	
 	            var g = this._parseCoordinates(value);
 	            return new Promise(function (resolve) {
-	                var result = { feature: { type: 'Feature', geometry: g, properties: {} }, provider: _this2, query: value };
-	                if (g && typeof _this2._onFetch === 'function') {
-	                    _this2._onFetch(result);
+	                var result = { feature: { type: 'Feature', geometry: g, properties: {} }, provider: _this, query: value };
+	                if (g && typeof _this._onFetch === 'function') {
+	                    _this._onFetch(result);
 	                }
 	                resolve(g ? [result] : []);
 	            });

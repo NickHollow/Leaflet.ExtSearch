@@ -10,6 +10,7 @@ let SearchControl = L.Control.extend({
     initialize: function(options) {    
         L.setOptions(this, options);
         this._allowSuggestion = true;
+        this.options.suggestionTimeout = this.options.suggestionTimeout || 1000;
     },
     _chain (tasks, state) {        
         return tasks.reduce(
@@ -39,22 +40,25 @@ let SearchControl = L.Control.extend({
                     });
                 };
             });
-        this._chain (tasks, { completed: false, response: [] }).then(state => {                
-            this._allowSuggestion = true;
+        this._chain (tasks, { completed: false, response: [] })
+        .then(state => {
             this.results.show(state.response, text.trim());
         });
-    },
-    _handleChange: function(e){        
-        const text = this._input.value;
-        this._currentTextLength = text.length;
-        if(text.length){
+    },   
+    _handleChange: function(e){                
+        if (this._input.value.length) {
             if (this._allowSuggestion) {
                 this._allowSuggestion = false;
-                this._suggest(text);
+                this._timer = setTimeout(() => {
+                    clearTimeout (this._timer);
+                    this._allowSuggestion = true;
+                    const text = this._input.value;
+                    this._suggest(text);
+                }, this.options.suggestionTimeout);
             }
-            else {                        
-                this._suggest(text);
-            }
+        }
+        else {
+            this.results.hide();
         }
     },
     _handleMouseMove: function(e){
@@ -156,6 +160,10 @@ let SearchControl = L.Control.extend({
         }
 
         return this;
+    },
+
+    setText: function (text) {
+        this._input.value = text;
     }
 
 });

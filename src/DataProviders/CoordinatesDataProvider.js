@@ -8,30 +8,28 @@ class CoordinatesDataProvider {
         this.showOnEnter = true;
         this.fetch = this.fetch.bind(this);
         this.find = this.find.bind(this);
-        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)');
-        this.rxLng = new RegExp('(\\d+\\.?\\d+)\\s*(E|W)');
+        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)?');
+        this.rxLng = new RegExp('(\\d+\\.?\\d+)\\s*(E|W)?');
     }
     _parseCoordinates(value) {
-        let coords = value.split(/(,|\\s+)/)
-        .reduce((a,x) => {
-            const lat = this.rxLat.exec(x);
-            if(lat && lat.length) {
-                a.lat = parseFloat(lat[1]);
-                if (lat[2] == 'S'){
-                    a.lat = -a.lat;
-                }
+        let coords = value.split(/[\s,]+/);
+        let a = {};
+        const lat = this.rxLat.exec(coords[0]);
+        if(lat && lat.length) {
+            a.lat = parseFloat(lat[1]);
+            if (lat[2] == 'S'){
+                a.lat = -a.lat;
             }
-            const lng = this.rxLng.exec(x);
-            if(lng && lng.length) {
-                a.lng = parseFloat(lng[1]);
-                if (lng[2] == 'W'){
-                    a.lng = -a.lng;
-                }
+        }
+        const lng = this.rxLng.exec(coords[1]);
+        if(lng && lng.length) {
+            a.lng = parseFloat(lng[1]);
+            if (lng[2] == 'W'){
+                a.lng = -a.lng;
             }
-            return a;
-        },{});
-        if (coords.hasOwnProperty('lat') && coords.hasOwnProperty('lng')){
-            return {type: 'Point', coordinates: [coords.lng, coords.lat]};
+        }
+        if (a.hasOwnProperty('lat') && a.hasOwnProperty('lng')){
+            return {type: 'Point', coordinates: [a.lng, a.lat]};
         }
         else {
             return null;
