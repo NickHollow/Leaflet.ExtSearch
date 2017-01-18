@@ -86,11 +86,11 @@
 	        }).map(function (provider) {
 	            return function (state) {
 	                return new Promise(function (resolve) {
-	                    if (_this.options.showFirst && state.completed) {
+	                    if (state.completed) {
 	                        resolve(state);
 	                    } else {
 	                        provider.find(text, _this.options.limit, false, false).then(function (response) {
-	                            state.completed = _this.options.showFirst && response.length > 0;
+	                            state.completed = response.length > 0;
 	                            state.response = state.response.concat(response);
 	                            resolve(state);
 	                        });
@@ -123,14 +123,12 @@
 	        e.stopPropagation();
 	    },
 	    _search: function _search(text) {
-	        var _this3 = this;
-	
 	        var tasks = this.options.providers.filter(function (provider) {
 	            return provider.showOnEnter;
 	        }).map(function (provider) {
 	            return function (state) {
 	                return new Promise(function (resolve) {
-	                    if (_this3.options.showFirst && state.completed) {
+	                    if (state.completed) {
 	                        resolve(state);
 	                    } else {
 	                        var p = provider.find(text, 1, true, true);
@@ -152,7 +150,7 @@
 	        });
 	    },
 	    _selectItem: function _selectItem(item) {
-	        var _this4 = this;
+	        var _this3 = this;
 	
 	        item.provider.fetch(item.properties).then(function (response) {
 	            if (item.provider.showOnSelect && response.length) {
@@ -161,7 +159,7 @@
 	                }).map(function (x) {
 	                    return x.feature;
 	                });
-	                _this4._renderer.render(features, _this4.options.style);
+	                _this3._renderer.render(features, _this3.options.style);
 	            }
 	        });
 	    },
@@ -171,6 +169,7 @@
 	        this._input = this._container.querySelector('input');
 	        this._input.addEventListener('input', this._handleChange.bind(this));
 	        this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
+	        this._input.addEventListener('drag', this._handleMouseMove.bind(this));
 	
 	        this._button = this._container.querySelector('.leaflet-ext-search-button');
 	        this._button.addEventListener('click', this._handleSearch.bind(this));
@@ -184,6 +183,7 @@
 	        this._renderer = this.options.renderer || new _GmxRenderer.GmxRenderer(map);
 	
 	        map.on('click', this.results.hide.bind(this.results));
+	        map.on('dragstart', this.results.hide.bind(this.results));
 	        return this._container;
 	    },
 	

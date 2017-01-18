@@ -25,14 +25,14 @@ let SearchControl = L.Control.extend({
             .map(provider => {
                 return state => {
                     return new Promise(resolve => {
-                        if (this.options.showFirst && state.completed) {
+                        if (state.completed) {
                             resolve(state);
                         }
                         else {
                             provider
                             .find (text, this.options.limit, false, false)
                             .then(response => {
-                                state.completed = this.options.showFirst && response.length > 0;
+                                state.completed = response.length > 0;
                                 state.response = state.response.concat(response);                              
                                 resolve(state);
                             });                          
@@ -70,7 +70,7 @@ let SearchControl = L.Control.extend({
             .map(provider => {
                 return state => {
                     return new Promise(resolve => {
-                        if (this.options.showFirst && state.completed) {
+                        if (state.completed) {
                             resolve(state);
                         }
                         else {
@@ -113,6 +113,7 @@ let SearchControl = L.Control.extend({
         this._input = this._container.querySelector('input');
         this._input.addEventListener('input', this._handleChange.bind(this));
         this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
+        this._input.addEventListener('drag', this._handleMouseMove.bind(this));
 
         this._button = this._container.querySelector('.leaflet-ext-search-button');
         this._button.addEventListener('click', this._handleSearch.bind(this));
@@ -126,6 +127,7 @@ let SearchControl = L.Control.extend({
         this._renderer = this.options.renderer || new GmxRenderer(map);
 
         map.on ('click', this.results.hide.bind(this.results));
+        map.on ('dragstart', this.results.hide.bind(this.results));
         return this._container;
     },
 

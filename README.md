@@ -4,8 +4,7 @@
 ```javascript
 var searchControl = new nsGmx.SearchControl({
         addBefore: 'gmxprint',
-        placeHolder: 'Поиск по кадастру, адресам, координатам',
-        showFirst: true,
+        placeHolder: 'Поиск по кадастру, адресам, координатам',        
         position: 'topleft',
         limit: 10,
         providers: [            
@@ -38,7 +37,6 @@ map.addControl(searchControl);
 ```
 - `<String> addBefore` - control reference before which to place search control
 - `<String> placeHolder` - default input text
-- `<Boolean> showFirst` - show suggestion from first successful query or show them all
 - `<String> position` - leaflet control corner
 - `<Number> limit` - suggestion rows limit
 - `<Object>[] providers` - suggestion providers
