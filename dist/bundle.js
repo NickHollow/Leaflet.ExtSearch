@@ -169,6 +169,7 @@
 	        this._input = this._container.querySelector('input');
 	        this._input.addEventListener('input', this._handleChange.bind(this));
 	        this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
+	        this._input.addEventListener('dragstart', this._handleMouseMove.bind(this));
 	        this._input.addEventListener('drag', this._handleMouseMove.bind(this));
 	
 	        this._button = this._container.querySelector('.leaflet-ext-search-button');
@@ -738,6 +739,8 @@
 	    value: true
 	});
 	
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -756,34 +759,39 @@
 	        this.showOnEnter = true;
 	        this.fetch = this.fetch.bind(this);
 	        this.find = this.find.bind(this);
-	        this.rxLat = new RegExp('(\\d+\\.?\\d+)\\s*(N|S)?');
-	        this.rxLng = new RegExp('(\\d+\\.?\\d+)\\s*(E|W)?');
+	
+	        this.rxF = new RegExp('^\\s*\\-?(\\d+(\\.\\d+)?)(\\s+(N|S))?(,\\s*|\\s+)\\-?(\\d+(\\.\\d+)?)(\\s+(E|W))?');
+	        this.rxD = new RegExp('^\\s*\\-?(\\d{1,2})(\\s|\\u00b0)(\\d{1,2})(\\s|\\u0027)(\\d{1,2}(\\.\\d+)?)(\\s|\\u0022)(N|S)?(,\\s*|\\s+)\\-?(\\d{1,2})(\\s|\\u00b0)(\\d{1,2})(\\s|\\u0027)(\\d{1,2}(\\.\\d+)?)(\\s|\\u0022)(E|W)?');
 	    }
 	
 	    _createClass(CoordinatesDataProvider, [{
 	        key: '_parseCoordinates',
 	        value: function _parseCoordinates(value) {
-	            var coords = value.split(/[\s,]+/);
-	            var a = {};
-	            var lat = this.rxLat.exec(coords[0]);
-	            if (lat && lat.length) {
-	                a.lat = parseFloat(lat[1]);
-	                if (lat[2] == 'S') {
-	                    a.lat = -a.lat;
-	                }
+	            var m = this.rxD.exec(value);
+	            if (Array.isArray(m) && m.length === 18) {
+	                return this._parseDegrees([m[1], m[3], m[5], m[10], m[12], m[14]].map(function (x) {
+	                    return parseFloat(x);
+	                }));
 	            }
-	            var lng = this.rxLng.exec(coords[1]);
-	            if (lng && lng.length) {
-	                a.lng = parseFloat(lng[1]);
-	                if (lng[2] == 'W') {
-	                    a.lng = -a.lng;
-	                }
+	            m = this.rxF.exec(value);
+	            if (Array.isArray(m) && m.length === 10) {
+	                return { type: 'Point', coordinates: [parseFloat(m[6]), parseFloat(m[1])] };
 	            }
-	            if (a.hasOwnProperty('lat') && a.hasOwnProperty('lng')) {
-	                return { type: 'Point', coordinates: [a.lng, a.lat] };
-	            } else {
-	                return null;
-	            }
+	
+	            return null;
+	        }
+	    }, {
+	        key: '_parseDegrees',
+	        value: function _parseDegrees(_ref2) {
+	            var _ref3 = _slicedToArray(_ref2, 6),
+	                latDeg = _ref3[0],
+	                latMin = _ref3[1],
+	                latSec = _ref3[2],
+	                lngDeg = _ref3[3],
+	                lngMin = _ref3[4],
+	                lngSec = _ref3[5];
+	
+	            return { type: 'Point', coordinates: [lngDeg + lngMin / 60 + lngSec / 3600, latDeg + latMin / 60 + latSec / 3600] };
 	        }
 	    }, {
 	        key: 'fetch',

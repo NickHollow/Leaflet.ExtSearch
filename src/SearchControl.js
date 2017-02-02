@@ -113,6 +113,7 @@ let SearchControl = L.Control.extend({
         this._input = this._container.querySelector('input');
         this._input.addEventListener('input', this._handleChange.bind(this));
         this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
+        this._input.addEventListener('dragstart', this._handleMouseMove.bind(this));
         this._input.addEventListener('drag', this._handleMouseMove.bind(this));
 
         this._button = this._container.querySelector('.leaflet-ext-search-button');
