@@ -11,8 +11,7 @@ var searchControl = new nsGmx.SearchControl({
         position: 'topleft',
         limit: 10,
         providers: [            
-            new nsGmx.OsmDataProvider({
-                showOnMap: false,
+            new nsGmx.OsmDataProvider({                
                 serverBase: 'http://maps.kosmosnimki.ru',
                 limit: 10,
                 onFetch: function (results) {                    

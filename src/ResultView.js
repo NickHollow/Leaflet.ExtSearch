@@ -9,7 +9,9 @@ class ResultView {
         this._inputText = '';
         this._replaceInput = replaceInput;
         this._list = L.DomUtil.create('div');
-        this._list.setAttribute('class', 'leaflet-ext-search-list noselect');        
+        this._list.setAttribute('class', 'leaflet-ext-search-list noselect');
+
+        this.allowNavigation = true;
 
         this._list.style.top = `${this._input.offsetTop + this._input.offsetHeight + 2}px`;
         this._list.style.left = `${this._input.offsetLeft}px`;
@@ -46,7 +48,7 @@ class ResultView {
         e.stopPropagation();        
     } 
 
-    _handleKey(e){
+    _handleKey(e){        
         if(this.listVisible()) {
             switch (e.keyCode){
                 // ArroLeft / ArrowRight
@@ -58,41 +60,45 @@ class ResultView {
                 case 40:
                     e.preventDefault();
                     e.stopPropagation();                 
-                    if (this.index < 0){
-                        this.index = 0;
-                    }
-                    else if (0 <= this.index && this.index < this.count - 1){
+                    if (this.allowNavigation) {                        
+                        if (this.index < 0){
+                            this.index = 0;
+                        }
+                        else if (0 <= this.index && this.index < this.count - 1){
+                            let el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                            L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                            ++this.index;
+                        }   
+                        else {
+                            let el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                            L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                            this.index = this.count - 1;
+                        }
                         let el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                        L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                        ++this.index;
-                    }   
-                    else {
-                        let el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                        L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                        this.index = this.count - 1;
+                        L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected'); 
+                        this.selectItem(this.index);
+                        el.focus();
                     }
-                    let el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                    L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected'); 
-                    this.selectItem(this.index);
-                    el.focus();
                     break;
                 // ArrowUp
                 case 38:
                     e.preventDefault(); 
-                    e.stopPropagation();           
-                    if(this.index > 0){
-                        let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
-                        L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
-                        --this.index;
-                        el = this._list.querySelector(`[tabindex="${this.index}"]`);
-                        L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected');
-                        this.selectItem(this.index);
-                        el.focus();            
+                    e.stopPropagation(); 
+                    if (this.allowNavigation) {
+                        if(this.index > 0){
+                            let el = this._list.querySelector(`[tabindex="${this.index}"]`); 
+                            L.DomUtil.removeClass (el, 'leaflet-ext-search-list-selected');
+                            --this.index;
+                            el = this._list.querySelector(`[tabindex="${this.index}"]`);
+                            L.DomUtil.addClass (el, 'leaflet-ext-search-list-selected');
+                            this.selectItem(this.index);
+                            el.focus();            
+                        }
+                        else if (this.index === 0) {                    
+                            this._input.focus();                
+                            this._input.value = this._inputText;                    
+                        }
                     }
-                    else if (this.index === 0) {                    
-                        this._input.focus();                
-                        this._input.value = this._inputText;                    
-                    } 
                     break;
                 // Enter
                 case 13:
@@ -105,7 +111,7 @@ class ResultView {
                     }
                     else {
                         this.complete (this.index);
-                    }
+                    }                   
                     break;
                 // Escape
                 case 27:
@@ -130,7 +136,8 @@ class ResultView {
                 this.index = -1;
                 this._input.focus();                
             }
-        }                                                     
+        } 
+                                                                    
     }
 
     listVisible(){
@@ -169,7 +176,7 @@ class ResultView {
         }        
     }
 
-    show(items, highlight) {
+    show(items, highlight) {        
         if (items.length) {
             this._item = null;
             this.index = -1;
@@ -208,7 +215,6 @@ class ResultView {
     hide() {        
         this._list.style.display = 'none';                
     }
-
 }
 
 export { ResultView };

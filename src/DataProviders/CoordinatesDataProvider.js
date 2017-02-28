@@ -1,9 +1,8 @@
 
 class CoordinatesDataProvider {
-    constructor({onFetch, showOnMap}){
+    constructor({onFetch}){
         this._onFetch = onFetch;
-        this.showSuggestion = false;
-        this.showOnMap = showOnMap;
+        this.showSuggestion = false;        
         this.showOnSelect = false;
         this.showOnEnter = true;
         this.fetch = this.fetch.bind(this);

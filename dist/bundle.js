@@ -55,13 +55,11 @@
 	
 	var _ResultView = __webpack_require__(6);
 	
-	var _GmxRenderer = __webpack_require__(7);
+	var _OsmDataProvider = __webpack_require__(7);
 	
-	var _OsmDataProvider = __webpack_require__(8);
+	var _CoordinatesDataProvider = __webpack_require__(8);
 	
-	var _CoordinatesDataProvider = __webpack_require__(9);
-	
-	var _CadastreDataProvider = __webpack_require__(10);
+	var _CadastreDataProvider = __webpack_require__(9);
 	
 	var SearchControl = L.Control.extend({
 	    includes: [L.Mixin.Events],
@@ -69,6 +67,7 @@
 	        L.setOptions(this, options);
 	        this._allowSuggestion = true;
 	        this.options.suggestionTimeout = this.options.suggestionTimeout || 1000;
+	        this.options.limit = this.options.limit || 10;
 	    },
 	    _chain: function _chain(tasks, state) {
 	        return tasks.reduce(function (prev, next) {
@@ -81,6 +80,7 @@
 	    _suggest: function _suggest(text) {
 	        var _this = this;
 	
+	        this.results.allowNavigation = false;
 	        var tasks = this.options.providers.filter(function (provider) {
 	            return provider.showSuggestion;
 	        }).map(function (provider) {
@@ -102,6 +102,7 @@
 	        });
 	        this._chain(tasks, { completed: false, response: [] }).then(function (state) {
 	            _this.results.show(state.response, text.trim());
+	            _this.results.allowNavigation = true;
 	        });
 	    },
 	    _handleChange: function _handleChange(e) {
@@ -152,18 +153,7 @@
 	        });
 	    },
 	    _selectItem: function _selectItem(item) {
-	        var _this3 = this;
-	
-	        item.provider.fetch(item.properties).then(function (response) {
-	            if (item.provider.showOnSelect && response.length) {
-	                var features = response.filter(function (x) {
-	                    return x.provider.showOnMap;
-	                }).map(function (x) {
-	                    return x.feature;
-	                });
-	                _this3._renderer.render(features, _this3.options.style);
-	            }
-	        });
+	        return item.provider.fetch(item.properties);
 	    },
 	    onAdd: function onAdd(map) {
 	        this._container = L.DomUtil.create('div', 'leaflet-ext-search');
@@ -182,8 +172,6 @@
 	            onSelect: this._selectItem.bind(this),
 	            onEnter: this._search.bind(this)
 	        });
-	
-	        this._renderer = this.options.renderer || new _GmxRenderer.GmxRenderer(map);
 	
 	        map.on('click', this.results.hide.bind(this.results));
 	        map.on('dragstart', this.results.hide.bind(this.results));
@@ -279,6 +267,8 @@
 	        this._list = L.DomUtil.create('div');
 	        this._list.setAttribute('class', 'leaflet-ext-search-list noselect');
 	
+	        this.allowNavigation = true;
+	
 	        this._list.style.top = this._input.offsetTop + this._input.offsetHeight + 2 + 'px';
 	        this._list.style.left = this._input.offsetLeft + 'px';
 	        this._input.addEventListener('keydown', this._handleKey.bind(this));
@@ -332,37 +322,41 @@
 	                    case 40:
 	                        e.preventDefault();
 	                        e.stopPropagation();
-	                        if (this.index < 0) {
-	                            this.index = 0;
-	                        } else if (0 <= this.index && this.index < this.count - 1) {
-	                            var _el = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                            L.DomUtil.removeClass(_el, 'leaflet-ext-search-list-selected');
-	                            ++this.index;
-	                        } else {
-	                            var _el2 = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                            L.DomUtil.removeClass(_el2, 'leaflet-ext-search-list-selected');
-	                            this.index = this.count - 1;
+	                        if (this.allowNavigation) {
+	                            if (this.index < 0) {
+	                                this.index = 0;
+	                            } else if (0 <= this.index && this.index < this.count - 1) {
+	                                var _el = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                                L.DomUtil.removeClass(_el, 'leaflet-ext-search-list-selected');
+	                                ++this.index;
+	                            } else {
+	                                var _el2 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                                L.DomUtil.removeClass(_el2, 'leaflet-ext-search-list-selected');
+	                                this.index = this.count - 1;
+	                            }
+	                            var el = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                            L.DomUtil.addClass(el, 'leaflet-ext-search-list-selected');
+	                            this.selectItem(this.index);
+	                            el.focus();
 	                        }
-	                        var el = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                        L.DomUtil.addClass(el, 'leaflet-ext-search-list-selected');
-	                        this.selectItem(this.index);
-	                        el.focus();
 	                        break;
 	                    // ArrowUp
 	                    case 38:
 	                        e.preventDefault();
 	                        e.stopPropagation();
-	                        if (this.index > 0) {
-	                            var _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                            L.DomUtil.removeClass(_el3, 'leaflet-ext-search-list-selected');
-	                            --this.index;
-	                            _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
-	                            L.DomUtil.addClass(_el3, 'leaflet-ext-search-list-selected');
-	                            this.selectItem(this.index);
-	                            _el3.focus();
-	                        } else if (this.index === 0) {
-	                            this._input.focus();
-	                            this._input.value = this._inputText;
+	                        if (this.allowNavigation) {
+	                            if (this.index > 0) {
+	                                var _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                                L.DomUtil.removeClass(_el3, 'leaflet-ext-search-list-selected');
+	                                --this.index;
+	                                _el3 = this._list.querySelector('[tabindex="' + this.index + '"]');
+	                                L.DomUtil.addClass(_el3, 'leaflet-ext-search-list-selected');
+	                                this.selectItem(this.index);
+	                                _el3.focus();
+	                            } else if (this.index === 0) {
+	                                this._input.focus();
+	                                this._input.value = this._inputText;
+	                            }
 	                        }
 	                        break;
 	                    // Enter
@@ -494,58 +488,6 @@
 /* 7 */
 /***/ function(module, exports) {
 
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var GmxRenderer = function () {
-	    function GmxRenderer(map) {
-	        _classCallCheck(this, GmxRenderer);
-	
-	        this._map = map;
-	        this._gmxDrawing = this._map.gmxDrawing;
-	    }
-	
-	    _createClass(GmxRenderer, [{
-	        key: "render",
-	        value: function render(features, _style) {
-	            var _this = this;
-	
-	            if (features && features.length) {
-	                var json = features.reduce(function (a, geojson) {
-	                    L.geoJson(geojson, {
-	                        style: function style(feature) {
-	                            return _style.lineStyle;
-	                        },
-	                        onEachFeature: function (feature, layer) {
-	                            this._gmxDrawing.add(layer, _style);
-	                        }.bind(_this)
-	                    });
-	                    a.addData(geojson.geometry);
-	                    return a;
-	                }, L.geoJson());
-	                var bounds = json.getBounds();
-	                this._map.fitBounds(bounds);
-	                this._map.invalidateSize();
-	            }
-	        }
-	    }]);
-	
-	    return GmxRenderer;
-	}();
-	
-	exports.GmxRenderer = GmxRenderer;
-
-/***/ },
-/* 8 */
-/***/ function(module, exports) {
-
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -559,16 +501,13 @@
 	var OsmDataProvider = function () {
 	    function OsmDataProvider(_ref) {
 	        var serverBase = _ref.serverBase,
-	            limit = _ref.limit,
-	            onFetch = _ref.onFetch,
-	            showOnMap = _ref.showOnMap;
+	            onFetch = _ref.onFetch;
 	
 	        _classCallCheck(this, OsmDataProvider);
 	
 	        this._serverBase = serverBase;
 	        this._onFetch = onFetch;
 	        this.showSuggestion = true;
-	        this.showOnMap = showOnMap;
 	        this.showOnSelect = true;
 	        this.showOnEnter = true;
 	        this.find = this.find.bind(this);
@@ -740,7 +679,7 @@
 	exports.OsmDataProvider = OsmDataProvider;
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -757,14 +696,12 @@
 	
 	var CoordinatesDataProvider = function () {
 	    function CoordinatesDataProvider(_ref) {
-	        var onFetch = _ref.onFetch,
-	            showOnMap = _ref.showOnMap;
+	        var onFetch = _ref.onFetch;
 	
 	        _classCallCheck(this, CoordinatesDataProvider);
 	
 	        this._onFetch = onFetch;
 	        this.showSuggestion = false;
-	        this.showOnMap = showOnMap;
 	        this.showOnSelect = false;
 	        this.showOnEnter = true;
 	        this.fetch = this.fetch.bind(this);
@@ -835,7 +772,7 @@
 	exports.CoordinatesDataProvider = CoordinatesDataProvider;
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -851,10 +788,8 @@
 	var CadastreDataProvider = function () {
 	    function CadastreDataProvider(_ref) {
 	        var serverBase = _ref.serverBase,
-	            limit = _ref.limit,
 	            tolerance = _ref.tolerance,
-	            onFetch = _ref.onFetch,
-	            showOnMap = _ref.showOnMap;
+	            onFetch = _ref.onFetch;
 	
 	        _classCallCheck(this, CadastreDataProvider);
 	
@@ -862,7 +797,6 @@
 	        this._tolerance = tolerance;
 	        this._onFetch = onFetch;
 	        this.showSuggestion = true;
-	        this.showOnMap = showOnMap;
 	        this.showOnSelect = false;
 	        this.showOnEnter = true;
 	        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }

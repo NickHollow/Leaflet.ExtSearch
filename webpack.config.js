@@ -3,7 +3,8 @@
 module.exports = {
     entry: "./src/SearchControl.js",
     output: {
-        filename: "./dist/bundle.js",
+        filename: "bundle.js",
+        path: __dirname + "/dist",
     },
 
     // Enable sourcemaps for debugging webpack's output.
@@ -43,6 +44,6 @@ module.exports = {
     },
 
     plugins: [   
-        new ExtractTextPlugin('./dist/bundle.css')
+        new ExtractTextPlugin('bundle.css')
     ]
 };

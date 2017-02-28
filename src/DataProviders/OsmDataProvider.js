@@ -1,10 +1,9 @@
 
 class OsmDataProvider {
-    constructor({serverBase, limit, onFetch, showOnMap}){
+    constructor({serverBase, onFetch}){
         this._serverBase = serverBase;
         this._onFetch = onFetch;        
-        this.showSuggestion = true;
-        this.showOnMap = showOnMap;
+        this.showSuggestion = true;    
         this.showOnSelect = true;
         this.showOnEnter = true;
         this.find = this.find.bind(this);

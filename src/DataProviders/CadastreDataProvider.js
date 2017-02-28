@@ -1,10 +1,9 @@
 class CadastreDataProvider {
-    constructor({serverBase, limit, tolerance, onFetch, showOnMap}){
+    constructor({serverBase, tolerance, onFetch}){
         this._serverBase = serverBase;        
         this._tolerance = tolerance;
         this._onFetch = onFetch;
         this.showSuggestion = true;
-        this.showOnMap = showOnMap;
         this.showOnSelect = false;
         this.showOnEnter = true;
         this._cadastreLayers = [			
