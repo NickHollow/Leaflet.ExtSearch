@@ -1,4 +1,7 @@
 # Leaflet.ExtSearch
+
+[Documentation](documentation.md) is available in separate file ([Russian version](documentation-rus.md)).
+
 ## Leaflet Extended Search Control
 ### Usage:
 ```javascript
