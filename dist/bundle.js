@@ -93,6 +93,8 @@
 	                            state.completed = response.length > 0;
 	                            state.response = state.response.concat(response);
 	                            resolve(state);
+	                        }).catch(function (e) {
+	                            return console.log(e);
 	                        });
 	                    }
 	                });
@@ -260,7 +262,9 @@
 	    function ResultView(_ref) {
 	        var input = _ref.input,
 	            onSelect = _ref.onSelect,
-	            onEnter = _ref.onEnter;
+	            onEnter = _ref.onEnter,
+	            _ref$replaceInput = _ref.replaceInput,
+	            replaceInput = _ref$replaceInput === undefined ? false : _ref$replaceInput;
 	
 	        _classCallCheck(this, ResultView);
 	
@@ -271,6 +275,7 @@
 	        this.count = 0;
 	        this._item = null;
 	        this._inputText = '';
+	        this._replaceInput = replaceInput;
 	        this._list = L.DomUtil.create('div');
 	        this._list.setAttribute('class', 'leaflet-ext-search-list noselect');
 	
@@ -405,8 +410,10 @@
 	        value: function selectItem(i) {
 	            this._item = this._items[i];
 	            var text = this._item.name;
-	            this._input.value = text;
-	            this._input.setSelectionRange(text.length, text.length);
+	            if (this._replaceInput) {
+	                this._input.value = text;
+	                this._input.setSelectionRange(text.length, text.length);
+	            }
 	        }
 	    }, {
 	        key: '_handleClick',
@@ -422,8 +429,10 @@
 	                this._item = item;
 	                this.index = -1;
 	                var text = item.name;
-	                this._input.value = text;
-	                this._input.setSelectionRange(text.length, text.length);
+	                if (this._replaceInput) {
+	                    this._input.value = text;
+	                    this._input.setSelectionRange(text.length, text.length);
+	                }
 	                this._input.focus();
 	                this.hide();
 	                if (typeof this._onSelect === 'function') {
@@ -662,7 +671,7 @@
 	
 	            var _strong = Boolean(strong) ? 1 : 0;
 	            var _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1;
-	            var query = 'RequestType=SearchObject&IsStrongSearch=' + _strong + '&WithoutGeometry=' + _withoutGeometry + '&UseOSM=1&Limit=' + limit + '&SearchString=' + encodeURIComponent(value);
+	            var query = 'WrapStyle=None&RequestType=SearchObject&IsStrongSearch=' + _strong + '&WithoutGeometry=' + _withoutGeometry + '&UseOSM=1&Limit=' + limit + '&SearchString=' + encodeURIComponent(value);
 	            var req = new Request(this._serverBase + '/SearchObject/SearchAddress.ashx?' + query + this._key);
 	            var headers = new Headers();
 	            headers.append('Content-Type', 'application/json');
@@ -674,9 +683,8 @@
 	            };
 	            return new Promise(function (resolve, reject) {
 	                fetch(req, init).then(function (response) {
-	                    return response.text();
-	                }).then(function (response) {
-	                    var json = JSON.parse(response.slice(1, response.length - 1));
+	                    return response.json();
+	                }).then(function (json) {
 	                    if (json.Status === 'ok') {
 	                        var rs = json.Result.reduce(function (a, x) {
 	                            return a.concat(x.SearchResult);
@@ -716,6 +724,8 @@
 	                    } else {
 	                        reject(json);
 	                    }
+	                }).catch(function (response) {
+	                    return reject(response);
 	                });
 	            });
 	        }
@@ -753,29 +763,29 @@
 	        _classCallCheck(this, CoordinatesDataProvider);
 	
 	        this._onFetch = onFetch;
-	        this.showSuggestion = true;
+	        this.showSuggestion = false;
 	        this.showOnMap = showOnMap;
 	        this.showOnSelect = false;
 	        this.showOnEnter = true;
 	        this.fetch = this.fetch.bind(this);
 	        this.find = this.find.bind(this);
 	
-	        this.rxF = new RegExp('^\\s*\\-?(\\d+(\\.\\d+)?)(\\s+(N|S))?(,\\s*|\\s+)\\-?(\\d+(\\.\\d+)?)(\\s+(E|W))?');
-	        this.rxD = new RegExp('^\\s*\\-?(\\d{1,2})(\\s|\\u00b0)(\\d{1,2})(\\s|\\u0027)(\\d{1,2}(\\.\\d+)?)(\\s|\\u0022)(N|S)?(,\\s*|\\s+)\\-?(\\d{1,2})(\\s|\\u00b0)(\\d{1,2})(\\s|\\u0027)(\\d{1,2}(\\.\\d+)?)(\\s|\\u0022)(E|W)?');
+	        this.rxF = new RegExp('^\\s*\\-?(\\d+(\\.\\d+)?)(\\s+[N|S])?(,\\s*|\\s+)\\-?(\\d+(\\.\\d+)?)(\\s+[E|W])?');
+	        this.rxD = new RegExp('^\\s*(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[N|S])?,?\\s+(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[E|W])?');
 	    }
 	
 	    _createClass(CoordinatesDataProvider, [{
 	        key: '_parseCoordinates',
 	        value: function _parseCoordinates(value) {
 	            var m = this.rxD.exec(value);
-	            if (Array.isArray(m) && m.length === 18) {
-	                return this._parseDegrees([m[1], m[3], m[5], m[10], m[12], m[14]].map(function (x) {
+	            if (Array.isArray(m) && m.length === 9) {
+	                return this._parseDegrees([m[1], m[2], m[3], m[5], m[6], m[7]].map(function (x) {
 	                    return parseFloat(x);
 	                }));
 	            }
 	            m = this.rxF.exec(value);
-	            if (Array.isArray(m) && m.length === 10) {
-	                return { type: 'Point', coordinates: [parseFloat(m[6]), parseFloat(m[1])] };
+	            if (Array.isArray(m) && m.length === 8) {
+	                return { type: 'Point', coordinates: [parseFloat(m[5]), parseFloat(m[1])] };
 	            }
 	
 	            return null;

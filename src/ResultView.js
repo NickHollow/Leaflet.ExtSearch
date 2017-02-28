@@ -1,5 +1,5 @@
 class ResultView {
-    constructor({input, onSelect, onEnter}){
+    constructor({input, onSelect, onEnter, replaceInput = false}){
         this._input = input;
         this._onSelect = onSelect;
         this._onEnter = onEnter;
@@ -7,6 +7,7 @@ class ResultView {
         this.count = 0;
         this._item = null;
         this._inputText = '';
+        this._replaceInput = replaceInput;
         this._list = L.DomUtil.create('div');
         this._list.setAttribute('class', 'leaflet-ext-search-list noselect');        
 
@@ -139,8 +140,10 @@ class ResultView {
     selectItem(i){        
         this._item = this._items[i];        
         const text = this._item.name;
-        this._input.value = text;
-        this._input.setSelectionRange(text.length, text.length);        
+        if (this._replaceInput) {
+            this._input.value = text;            
+            this._input.setSelectionRange(text.length, text.length);
+        }        
     }
 
     _handleClick (i, e){
@@ -154,8 +157,10 @@ class ResultView {
             this._item = item;        
             this.index = -1;            
             const text = item.name;
-            this._input.value = text;
-            this._input.setSelectionRange(text.length, text.length);                          
+            if (this._replaceInput) {
+                this._input.value = text;
+                this._input.setSelectionRange(text.length, text.length);
+            }
             this._input.focus();
             this.hide();
             if(typeof this._onSelect === 'function'){

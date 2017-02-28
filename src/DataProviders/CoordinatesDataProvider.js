@@ -2,25 +2,25 @@
 class CoordinatesDataProvider {
     constructor({onFetch, showOnMap}){
         this._onFetch = onFetch;
-        this.showSuggestion = true;
+        this.showSuggestion = false;
         this.showOnMap = showOnMap;
         this.showOnSelect = false;
         this.showOnEnter = true;
         this.fetch = this.fetch.bind(this);
         this.find = this.find.bind(this);        
 
-        this.rxF = new RegExp('^\\s*\\-?(\\d+(\\.\\d+)?)(\\s+(N|S))?(,\\s*|\\s+)\\-?(\\d+(\\.\\d+)?)(\\s+(E|W))?');
-        this.rxD = new RegExp('^\\s*\\-?(\\d{1,2})(\\s|\\u00b0)(\\d{1,2})(\\s|\\u0027)(\\d{1,2}(\\.\\d+)?)(\\s|\\u0022)(N|S)?(,\\s*|\\s+)\\-?(\\d{1,2})(\\s|\\u00b0)(\\d{1,2})(\\s|\\u0027)(\\d{1,2}(\\.\\d+)?)(\\s|\\u0022)(E|W)?');
+        this.rxF = new RegExp('^\\s*\\-?(\\d+(\\.\\d+)?)(\\s+[N|S])?(,\\s*|\\s+)\\-?(\\d+(\\.\\d+)?)(\\s+[E|W])?');
+        this.rxD = new RegExp('^\\s*(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[N|S])?,?\\s+(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[E|W])?');
     }
     _parseCoordinates(value) {
         let m = this.rxD.exec(value);
-        if (Array.isArray(m) && m.length === 18) {
-            return this._parseDegrees ([m[1],m[3],m[5],m[10],m[12],m[14]].map(x => parseFloat(x)));
+        if (Array.isArray(m) && m.length === 9) {
+            return this._parseDegrees ([m[1],m[2],m[3],m[5],m[6],m[7]].map(x => parseFloat(x)));
         }
         m = this.rxF.exec(value);
-        if (Array.isArray (m) && m.length === 10){
+        if (Array.isArray (m) && m.length === 8){
             return {type: 'Point', coordinates: [
-                parseFloat(m[6]),
+                parseFloat(m[5]),
                 parseFloat(m[1])
             ]};
         }
@@ -34,9 +34,9 @@ class CoordinatesDataProvider {
         ]};
     }
     fetch (value){
-        return new Promise(resolve => resolve([]));        
+        return new Promise(resolve => resolve([]));
     }
-    find(value, limit, strong, retrieveGeometry){
+    find(value, limit, strong, retrieveGeometry){        
         let g = this._parseCoordinates(value);        
         return new Promise(resolve => {
             let result = {feature: { type: 'Feature', geometry: g, properties: {} }, provider: this, query: value};

@@ -35,7 +35,8 @@ let SearchControl = L.Control.extend({
                                 state.completed = response.length > 0;
                                 state.response = state.response.concat(response);                              
                                 resolve(state);
-                            });                          
+                            })
+                            .catch(e => console.log(e));
                         }
                     });
                 };

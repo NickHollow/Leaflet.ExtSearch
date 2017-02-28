@@ -87,7 +87,7 @@ class OsmDataProvider {
     find(value, limit, strong, retrieveGeometry){
         const _strong = Boolean(strong) ? 1 : 0;
         const _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1; 
-        const query = `RequestType=SearchObject&IsStrongSearch=${_strong}&WithoutGeometry=${_withoutGeometry}&UseOSM=1&Limit=${limit}&SearchString=${encodeURIComponent(value)}`;        
+        const query = `WrapStyle=None&RequestType=SearchObject&IsStrongSearch=${_strong}&WithoutGeometry=${_withoutGeometry}&UseOSM=1&Limit=${limit}&SearchString=${encodeURIComponent(value)}`;        
         let req = new Request(`${this._serverBase}/SearchObject/SearchAddress.ashx?${query}${this._key}`);
         let headers = new Headers();
         headers.append('Content-Type','application/json');        
@@ -99,9 +99,8 @@ class OsmDataProvider {
         };
         return new Promise((resolve, reject) => {
             fetch (req, init)
-            .then(response => response.text())
-            .then(response => {
-                const json = JSON.parse (response.slice(1, response.length - 1));
+            .then(response => response.json())
+            .then(json => {                
                 if(json.Status === 'ok'){                    
                     const rs = json.Result
                     .reduce((a,x) => a.concat(x.SearchResult), [])
@@ -143,7 +142,8 @@ class OsmDataProvider {
                 else {
                     reject(json);
                 }                
-            });
+            })
+            .catch(response => reject(response));
         });
     }
 }
