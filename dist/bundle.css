@@ -18,6 +18,7 @@
     height: 30px;
     width: 362px;
     border-style: none;
+    outline: none;    
     text-indent: 10px;
     text-overflow: ellipsis;
 }
@@ -31,11 +32,11 @@
     cursor: pointer;
     max-height: 300px;
     overflow-y: auto;
-    overflow-x: initial;
+    overflow-x: initial;    
 }
 
 .leaflet-ext-search-list-selected{
-    background-color: gainsboro;
+    background-color: whitesmoke;
 }
 
 .leaflet-ext-search-list ul {
@@ -47,6 +48,7 @@
 .leaflet-ext-search-list ul li {
     padding: 10px;
     border-top: 1px solid gainsboro;
+    outline: none;
 }
 
 .leaflet-ext-search-list-item-highlight{
