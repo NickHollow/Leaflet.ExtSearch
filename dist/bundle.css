@@ -9,9 +9,10 @@
 
 .leaflet-ext-search {
     clear: none !important;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-    border-radius: 3px;
-    background-color: white;    
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);    
+    background-color: white; 
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 .leaflet-ext-search input {
@@ -21,6 +22,8 @@
     outline: none;    
     text-indent: 10px;
     text-overflow: ellipsis;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
 }
 
 .leaflet-ext-search, .leaflet-ext-search-list {

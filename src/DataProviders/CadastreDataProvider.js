@@ -40,7 +40,8 @@ class CadastreDataProvider {
     find(value, limit, strong, retrieveGeometry){   
         const cadastreLayer = this.getCadastreLayer(value);    
         return new Promise(resolve => {
-            let req = new Request(`${this._serverBase}/typeahead?limit=${limit}&skip=0&text=${value}&type=${cadastreLayer.id}`);
+            // let req = new Request(`${this._serverBase}/typeahead?limit=${limit}&skip=0&text=${value}&type=${cadastreLayer.id}`);
+            let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?text=${value}&tolerance=${this._tolerance}&limit=${limit}`);
             let headers = new Headers();
             headers.append('Content-Type','application/json');            
             let init = {
@@ -49,13 +50,12 @@ class CadastreDataProvider {
                 cache: 'default',
             };
             fetch (req, init)
-            .then(response => response.text())
-            .then(response => {
-                const json = JSON.parse (response); 
+            .then(response => response.json())
+            .then(json => {
                 // if(json.status === 200){
-                    let rs = json.results.map(x => {
+                    let rs = json.features.map(x => {
                         return {
-                            name: x.title,
+                            name: x.attrs.name || x.attrs.cn || x.attrs.id,
                             properties: x,
                             provider: this,
                             query: value,
@@ -70,11 +70,13 @@ class CadastreDataProvider {
             });
         });
     }
-    fetch(obj) {        
-        const cadastreLayer = this.getCadastreLayer(obj.value);
+    fetch(obj) {
+		var text = obj.attrs.name || obj.attrs.cn || obj.attrs.id;
+        const cadastreLayer = this.getCadastreLayer(text, obj.type);
         return new Promise(resolve => {
             if(cadastreLayer) {
-                let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?tolerance=${this._tolerance}&limit=1&text=${obj.value}`);
+                // let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?tolerance=${this._tolerance}&limit=1&text=${obj.value}`);
+                let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?tolerance=${this._tolerance}&limit=1&text=${text}`);
                 let headers = new Headers();
                 headers.append('Content-Type','application/json');
                 let init = {
@@ -83,9 +85,8 @@ class CadastreDataProvider {
                     cache: 'default',
                 };
                 fetch (req, init)
-                .then(response => response.text())
-                .then(response => {
-                    const json = JSON.parse (response);
+                .then(response => response.json())
+                .then(json => {
                     if(json.status === 200){
                         if (typeof this._onFetch === 'function'){
                             this._onFetch(json);

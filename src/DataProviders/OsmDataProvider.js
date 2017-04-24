@@ -36,7 +36,7 @@ class OsmDataProvider {
         return geometry;
     }
     fetch (obj) {
-        const query = `RequestType=ID&ID=${obj.ObjCode}&TypeCode=${obj.TypeCode}&UseOSM=1`;        
+        const query = `WrapStyle=None&RequestType=ID&ID=${obj.ObjCode}&TypeCode=${obj.TypeCode}&UseOSM=1`;        
         let req = new Request(`${this._serverBase}/SearchObject/SearchAddress.ashx?${query}${this._key}`);
         let headers = new Headers();
         headers.append('Content-Type','application/json');        
@@ -48,9 +48,8 @@ class OsmDataProvider {
         };
         return new Promise((resolve, reject) => {
             fetch (req, init)
-            .then(response => response.text())
-            .then(response => {                
-                const json = JSON.parse (response.slice(1, response.length - 1));
+            .then(response => response.json())
+            .then(json => {
                 if(json.Status === 'ok'){
                     const rs = json.Result
                     .reduce((a,x) => a.concat(x.SearchResult), [])
@@ -80,7 +79,8 @@ class OsmDataProvider {
                 else {
                     reject(json);
                 }                
-            });
+            })
+            .catch(response => reject(response));
         });
     }
     find(value, limit, strong, retrieveGeometry){
