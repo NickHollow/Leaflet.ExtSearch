@@ -742,6 +742,10 @@ var SearchControl = L.Control.extend({
             }
         }
         return this;
+    },
+
+    setText: function setText(text) {
+        this._widget.setText(text);
     }
 });
 

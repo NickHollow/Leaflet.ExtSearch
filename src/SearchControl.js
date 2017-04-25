@@ -42,6 +42,10 @@ let SearchControl = L.Control.extend({
         }
         return this;
     },
+
+    setText (text) {
+        this._widget.setText (text);
+    },
 });
 
 export { SearchControl };
