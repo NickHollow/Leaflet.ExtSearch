@@ -9,12 +9,13 @@ function chain (tasks, state) {
 }
 
 class SearchWidget {
-    constructor(container, {placeHolder, providers, suggestionTimeout = 1000, limit = 10}){
+    constructor(container, {placeHolder, providers, suggestionTimeout = 1000, limit = 10, strongSearchOnEnter = false}){
         this._container = container;
         this._allowSuggestion = true;
         this._providers = providers;
         this._suggestionTimeout = suggestionTimeout;
         this._limit = limit;
+        this._strongSearchOnEnter = strongSearchOnEnter;
 
         this._container.classList.add('leaflet-ext-search');
         this._container.innerHTML = `<input type="text" value="" placeholder="${placeHolder}" /><span class="leaflet-ext-search-button"></span>`;
@@ -95,7 +96,7 @@ class SearchWidget {
                             resolve(state);
                         }
                         else {
-                            let p = provider.find (text, 1, true, true);
+                            let p = provider.find (text, 1, this._strongSearchOnEnter, true);
                             p.then(response => {
                                 state.completed = response.length > 0;
                                 state.response = state.response.concat(response);                                

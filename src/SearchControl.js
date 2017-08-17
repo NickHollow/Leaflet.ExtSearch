@@ -6,7 +6,7 @@ let SearchControl = L.Control.extend({
         L.setOptions(this, options);
         this._allowSuggestion = true;
         this.options.suggestionTimeout = this.options.suggestionTimeout || 1000;
-        this.options.limit = this.options.limit || 10;
+        this.options.limit = this.options.limit || 10;        
     },      
     onAdd: function(map) {
         this._container = L.DomUtil.create('div', 'leaflet-ext-search');
