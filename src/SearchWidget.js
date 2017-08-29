@@ -9,13 +9,14 @@ function chain (tasks, state) {
 }
 
 class SearchWidget {
-    constructor(container, {placeHolder, providers, suggestionTimeout = 1000, limit = 10, strongSearchOnEnter = false}){
+    constructor(container, {placeHolder, providers, suggestionTimeout = 1000, limit = 10, fuzzySearchLimit = 1000, retrieveManyOnEnter = false}){
         this._container = container;
         this._allowSuggestion = true;
         this._providers = providers;
         this._suggestionTimeout = suggestionTimeout;
         this._limit = limit;
-        this._strongSearchOnEnter = strongSearchOnEnter;
+        this._fuzzySearchLimit = fuzzySearchLimit;
+        this._retrieveManyOnEnter = retrieveManyOnEnter;
 
         this._container.classList.add('leaflet-ext-search');
         this._container.innerHTML = `<input type="text" value="" placeholder="${placeHolder}" /><span class="leaflet-ext-search-button"></span>`;
@@ -96,8 +97,9 @@ class SearchWidget {
                             resolve(state);
                         }
                         else {
-                            let p = provider.find (text, 1, this._strongSearchOnEnter, true);
-                            p.then(response => {
+                            provider
+                            .find (text, this._retrieveManyOnEnter ? this._fuzzySearchLimit : 1, true, true)
+                            .then(response => {
                                 state.completed = response.length > 0;
                                 state.response = state.response.concat(response);                                
                                 resolve(state);
@@ -109,11 +111,11 @@ class SearchWidget {
 
             chain (tasks, {completed: false, response: []})
             .then(state => {                
-                if(state.response.length){
+                if(state.response.length > 0 && !this._retrieveManyOnEnter){
                     let item = state.response[0];
                     item.provider
                     .fetch(item.properties)
-                    .then(response => {});
+                    .then(response => {});                    
                 }
             });
     }

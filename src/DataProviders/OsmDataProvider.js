@@ -104,7 +104,7 @@ class OsmDataProvider {
                     const rs = json.Result
                     .reduce((a,x) => a.concat(x.SearchResult), [])
                     .map(x => {
-                        if (retrieveGeometry) {
+                        if (retrieveGeometry && x.Geometry) {
                             let g = this._convertGeometry (x.Geometry);
                             let props = Object.keys(x)
                             .filter(k => k !== 'Geometry')
@@ -133,7 +133,7 @@ class OsmDataProvider {
                             };
                         }                        
                     });
-                    if (limit === 1 && strong && retrieveGeometry && typeof this._onFetch === 'function'){
+                    if (typeof this._onFetch === 'function' && strong && retrieveGeometry) {
                         this._onFetch(rs);
                     }
                     resolve(rs);                    
