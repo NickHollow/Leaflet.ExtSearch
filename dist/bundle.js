@@ -221,6 +221,8 @@ var SearchWidget = function () {
                     item.provider.fetch(item.properties).then(function (response) {});
                 }
             });
+
+            this.results && this.results.hide();
         }
     }, {
         key: '_selectItem',
@@ -274,21 +276,21 @@ var CadastreDataProvider = function () {
         this.showSuggestion = true;
         this.showOnSelect = false;
         this.showOnEnter = true;
-        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
-        // ,
-        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-        // /[^\d\:]/g,
-        // /\d\d:\d+$/,
-        // /\d\d:\d+:\d+$/,
-        // /\d\d:\d+:\d+:\d+$/
-        ];
+        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
+            // ,
+            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+            // /[^\d\:]/g,
+            // /\d\d:\d+$/,
+            // /\d\d:\d+:\d+$/,
+            // /\d\d:\d+:\d+:\d+$/
+        }];
     }
 
     _createClass(CadastreDataProvider, [{
