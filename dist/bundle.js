@@ -760,6 +760,9 @@ var SearchControl = L.Control.extend({
 
     setText: function setText(text) {
         this._widget.setText(text);
+    },
+    setPlaceHolder: function setPlaceHolder(value) {
+        this._widget.setPlaceHolder(value);
     }
 });
 

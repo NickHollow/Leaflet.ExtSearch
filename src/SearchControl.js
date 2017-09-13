@@ -2,12 +2,12 @@ import { SearchWidget } from './SearchWidget.js';
 
 let SearchControl = L.Control.extend({
     includes: [L.Mixin.Events],
-    initialize: function(options) {    
+    initialize: function(options) {
         L.setOptions(this, options);
         this._allowSuggestion = true;
         this.options.suggestionTimeout = this.options.suggestionTimeout || 1000;
-        this.options.limit = this.options.limit || 10;        
-    },      
+        this.options.limit = this.options.limit || 10;
+    },
     onAdd: function(map) {
         this._container = L.DomUtil.create('div', 'leaflet-ext-search');
         this._widget = new SearchWidget(this._container, this.options);
@@ -30,7 +30,7 @@ let SearchControl = L.Control.extend({
         }
         if (!parentNode) {
             this.options.addBefore = id;
-        } 
+        }
         else {
             for (let i = 0, len = parentNode.childNodes.length; i < len; i++) {
                 let it = parentNode.childNodes[i];
@@ -45,6 +45,10 @@ let SearchControl = L.Control.extend({
 
     setText (text) {
         this._widget.setText (text);
+    },
+
+    setPlaceHolder (value) {
+        this._widget.setPlaceHolder (value);
     },
 });
 
