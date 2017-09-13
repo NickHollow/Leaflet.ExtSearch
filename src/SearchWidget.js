@@ -131,6 +131,10 @@ class SearchWidget {
     setText (text) {
         this._input.value = text;
     }
+
+    setPlaceHolder (value) {
+        this._input.placeholder = value;
+    }
 }
 
 export { SearchWidget };

@@ -240,6 +240,11 @@ var SearchWidget = function () {
         value: function setText(text) {
             this._input.value = text;
         }
+    }, {
+        key: 'setPlaceHolder',
+        value: function setPlaceHolder(value) {
+            this._input.placeholder = value;
+        }
     }]);
 
     return SearchWidget;
