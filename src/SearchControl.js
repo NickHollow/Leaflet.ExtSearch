@@ -13,6 +13,11 @@ let SearchControl = L.Control.extend({
         this._widget = new SearchWidget(this._container, this.options);
         map.on('click', this._widget.results.hide.bind(this._widget.results));
         map.on('dragstart', this._widget.results.hide.bind(this._widget.results));
+        this._container.oncontextmenu = function (e) {
+            e.stopPropagation();
+            return true;
+        };
+        
         return this._container;
     },
     addTo: function(map) {
