@@ -12,12 +12,7 @@ let SearchControl = L.Control.extend({
         this._container = L.DomUtil.create('div', 'leaflet-ext-search');
         this._widget = new SearchWidget(this._container, this.options);
         map.on('click', this._widget.results.hide.bind(this._widget.results));
-        map.on('dragstart', this._widget.results.hide.bind(this._widget.results));
-        this._container.oncontextmenu = function (e) {
-            e.stopPropagation();
-            return true;
-        };
-        
+        map.on('dragstart', this._widget.results.hide.bind(this._widget.results));        
         return this._container;
     },
     addTo: function(map) {
