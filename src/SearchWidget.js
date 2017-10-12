@@ -111,12 +111,12 @@ class SearchWidget {
 
             chain (tasks, {completed: false, response: []})
             .then(state => {                
-                if(state.response.length > 0 && !this._retrieveManyOnEnter){
-                    let item = state.response[0];
-                    item.provider
-                    .fetch(item.properties)
-                    .then(response => {});                    
-                }
+                // if(state.response.length > 0 && !this._retrieveManyOnEnter){
+                //     let item = state.response[0];
+                //     item.provider
+                //     .fetch(item.properties)
+                //     .then(response => {});                    
+                // }
             });
     }
     _selectItem (item){

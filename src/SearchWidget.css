@@ -26,11 +26,12 @@
     border-bottom-left-radius: 5px;
 }
 
-.leaflet-ext-search, .leaflet-ext-search-list {
+.leaflet-ext-search,
+.leaflet-ext-search-list {
     width: 400px;
 }
 
-.leaflet-ext-search-list{    
+.leaflet-ext-search-list {    
     background-color: white;    
     cursor: pointer;
     max-height: 300px;
@@ -67,7 +68,7 @@
     cursor: pointer;  
     border-style: none;
     background-image: url('search-input-field.png');
-    background-repeat: space;
+    background-repeat: no-repeat;
     background-position: center;
 }
 

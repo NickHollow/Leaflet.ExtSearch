@@ -216,10 +216,12 @@ var SearchWidget = function () {
             });
 
             chain(tasks, { completed: false, response: [] }).then(function (state) {
-                if (state.response.length > 0 && !_this3._retrieveManyOnEnter) {
-                    var item = state.response[0];
-                    item.provider.fetch(item.properties).then(function (response) {});
-                }
+                // if(state.response.length > 0 && !this._retrieveManyOnEnter){
+                //     let item = state.response[0];
+                //     item.provider
+                //     .fetch(item.properties)
+                //     .then(response => {});                    
+                // }
             });
         }
     }, {
