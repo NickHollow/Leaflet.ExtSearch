@@ -1,7 +1,7 @@
 import './SearchWidget.css';
 import { ResultView } from './ResultView.js';
 
-function chain (tasks, state) {        
+function chain (tasks, state) {
     return tasks.reduce(
         (prev, next) => prev.then(next),
         new Promise ((resolve, reject) => resolve (state))
@@ -33,14 +33,14 @@ class SearchWidget {
             input: this._input,
             onSelect: this._selectItem.bind(this),
             onEnter: this._search.bind(this),
-        });        
+        });
 
         // map.on ('click', this.results.hide.bind(this.results));
         // map.on ('dragstart', this.results.hide.bind(this.results));
     }
     _suggest (text){
         this.results.allowNavigation = false;
-        let tasks = 
+        let tasks =
             this._providers
             .filter (provider => provider.showSuggestion)
             .map(provider => {
@@ -54,7 +54,7 @@ class SearchWidget {
                             .find (text, this._limit, false, false)
                             .then(response => {
                                 state.completed = response.length > 0;
-                                state.response = state.response.concat(response);                              
+                                state.response = state.response.concat(response);
                                 resolve(state);
                             })
                             .catch(e => console.log(e));
@@ -71,7 +71,7 @@ class SearchWidget {
     _handleChange(e) {
         if (this._input.value.length) {
             if (this._allowSuggestion) {
-                this._allowSuggestion = false;                
+                this._allowSuggestion = false;
                 this._timer = setTimeout(() => {
                     clearTimeout (this._timer);
                     this._allowSuggestion = true;
@@ -101,7 +101,7 @@ class SearchWidget {
                             .find (text, this._retrieveManyOnEnter ? this._fuzzySearchLimit : 1, true, true)
                             .then(response => {
                                 state.completed = response.length > 0;
-                                state.response = state.response.concat(response);                                
+                                state.response = state.response.concat(response);
                                 resolve(state);
                             });
                         }
@@ -118,16 +118,22 @@ class SearchWidget {
                 //     .then(response => {});                    
                 // }
             });
+
+            this.results && this.results.hide();
     }
     _selectItem (item){
         return item.provider.fetch(item.properties);
-    } 
+    }
     _handleSearch (e) {
          e.stopPropagation();
          this._search (this._input.value);
     }
     setText (text) {
         this._input.value = text;
+    }
+
+    setPlaceHolder (value) {
+        this._input.placeholder = value;
     }
 }
 
