@@ -1,7 +1,7 @@
 import { SearchWidget } from './SearchWidget.js';
 
 let SearchControl = L.Control.extend({
-    includes: [L.Mixin.Events],
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     initialize: function(options) {
         L.setOptions(this, options);
         this._allowSuggestion = true;
