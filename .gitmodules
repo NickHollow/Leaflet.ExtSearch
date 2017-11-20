@@ -1,0 +1,3 @@
+[submodule "src/lib/EventTarget"]
+	path = src/lib/EventTarget
+	url = https://github.com/Scanex/EventTarget.git

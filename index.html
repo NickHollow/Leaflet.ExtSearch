@@ -27,45 +27,42 @@
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
             var items = [];
+        
+            var coords = new nsGmx.CoordinatesDataProvider();
+            coords.addEventListener('fetch', function (response) { console.log(response); });
 
-            var searchControl = new nsGmx.SearchControl(
-            {                
+            var osm = new nsGmx.OsmDataProvider({ serverBase: 'http://maps.kosmosnimki.ru'});
+            osm.addEventListener('fetch', function (e) {
+                var results = e.detail;
+                var features = results.map(function (x) {
+                    x.feature.properties.editable = false;
+                    x.feature.properties.name = x.feature.properties.ObjName;
+                    return x.feature;
+                });                            
+                if (features && features.length) {
+                    var json = features
+                        .reduce(function (a, geojson) {
+                            a.addData(geojson.geometry);
+                            return a;
+                        }.bind(this), L.geoJson());                                
+                    items = items.concat(features.map(function(x){
+                        return {checked: true, name: x.properties.ObjName, area: 0};
+                    }));
+                    
+                    console.log(items);
+
+                    var bounds = json.getBounds();
+                    map.fitBounds(bounds);
+                    map.invalidateSize();
+                }
+            });
+
+            var searchControl = new nsGmx.SearchControl({                
                 placeHolder: 'Поиск по адресам',
                 position: 'topleft',
                 retrieveManyOnEnter: true,
-                providers: [                              
-                    new nsGmx.CoordinatesDataProvider({
-                        onFetch: function (response) {
-                            console.log(response);
-                        },
-                    }),
-                    new nsGmx.OsmDataProvider({                        
-                        serverBase: 'http://maps.kosmosnimki.ru',                        
-                        onFetch: function (results) {
-                            var features = results.map(function (x) {
-                                x.feature.properties.editable = false;
-                                x.feature.properties.name = x.feature.properties.ObjName;
-                                return x.feature;
-                            });                            
-                            if (features && features.length) {
-                                var json = features
-                                    .reduce(function (a, geojson) {
-                                        a.addData(geojson.geometry);
-                                        return a;
-                                    }.bind(this), L.geoJson());                                
-                                items = items.concat(features.map(function(x){
-                                    return {checked: true, name: x.properties.ObjName, area: 0};
-                                }));
-                                
-                                console.log(items);
-
-                                var bounds = json.getBounds();
-                                map.fitBounds(bounds);
-                                map.invalidateSize();
-                            }
-                        }.bind(this),
-                    }),                                        
-                ],                
+                replaceInputOnEnter: true,
+                providers: [coords, osm],
             });
 
 			map.addControl(searchControl);

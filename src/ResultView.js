@@ -1,8 +1,9 @@
-class ResultView {
-    constructor({input, onSelect, onEnter, replaceInput = false}){
-        this._input = input;
-        this._onSelect = onSelect;
-        this._onEnter = onEnter;
+import { EventTarget } from './lib/EventTarget/src/EventTarget.js';
+
+class ResultView extends EventTarget {
+    constructor({input, replaceInput = false}){
+        super();
+        this._input = input;            
         this.index = -1;
         this.count = 0;
         this._item = null;
@@ -15,16 +16,26 @@ class ResultView {
 
         this._list.style.top = `${this._input.offsetTop + this._input.offsetHeight + 2}px`;
         this._list.style.left = `${this._input.offsetLeft}px`;
-        this._input.addEventListener('keydown', this._handleKey.bind(this));
-        this._input.addEventListener('click', this._handleInputClick.bind(this));
-        this._input.addEventListener('focus', this._handleFocus.bind(this));
-        this._list.addEventListener('keydown', this._handleKey.bind(this));
-        this._list.addEventListener('wheel', this._handleWheel.bind(this));
+
+        this._handleKey = this._handleKey.bind(this);
+        this._input.addEventListener('keydown', this._handleKey);
+
+        this._handleInputClick = this._handleInputClick.bind(this);
+        this._input.addEventListener('click', this._handleInputClick);
+
+        this._handleFocus = this._handleFocus.bind(this);
+        this._input.addEventListener('focus', this._handleFocus);
+        this._list.addEventListener('keydown', this._handleKey);
+
+        this._handleWheel = this._handleWheel.bind(this);
+        this._list.addEventListener('wheel', this._handleWheel);
         L.DomEvent.disableClickPropagation(this._list).disableScrollPropagation(this._list);
         // this._list.addEventListener('mousewheel', this._handleWheel.bind(this));
         // this._list.addEventListener('MozMousePixelScroll', this._handleWheel.bind(this));       
         this._input.parentElement.appendChild(this._list); 
-        this._input.addEventListener('input', this._handleChange.bind(this));
+
+        this._handleChange = this._handleChange.bind(this);
+        this._input.addEventListener('input', this._handleChange);
     }
 
     _handleInputClick (e) {
@@ -102,12 +113,16 @@ class ResultView {
                     break;
                 // Enter
                 case 13:
-                    if (this.index < 0 && this._input.value && typeof this._onEnter === 'function'){
+                    if (this.index < 0 && this._input.value){
                         const text = this._input.value;
                         this._input.focus();
                         this._input.setSelectionRange(text.length, text.length);                                      
-                        this.hide();                        
-                        this._onEnter (text);
+                        this.hide();
+                        
+                        let event = document.createEvent('Event');
+                        event.initEvent('suggestions:confirm', false, false);
+                        event.detail = text;
+                        this.dispatchEvent(event);
                     }
                     else {
                         this.complete (this.index);
@@ -126,10 +141,14 @@ class ResultView {
             }            
         }
         else {            
-            if (e.keyCode === 13 && this._input.value && typeof this._onEnter == 'function'){ 
+            if (e.keyCode === 13 && this._input.value){ 
                 const text = this._input.value;
                 this._input.setSelectionRange(text.length, text.length);
-                this._onEnter (text);
+
+                let event = document.createEvent('Event');
+                event.initEvent('suggestions:confirm', false, false);
+                event.detail = text;
+                this.dispatchEvent(event);                
             }
             else if (e.keyCode === 27){
                 this._input.value = '';
@@ -170,9 +189,11 @@ class ResultView {
             }
             this._input.focus();
             this.hide();
-            if(typeof this._onSelect === 'function'){
-                this._onSelect (item);
-            }
+
+            let event = document.createEvent('Event');
+            event.initEvent('suggestions:select', false, false);
+            event.detail = item;
+            this.dispatchEvent(event);            
         }        
     }
 

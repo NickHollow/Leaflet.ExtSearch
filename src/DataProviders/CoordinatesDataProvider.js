@@ -1,7 +1,8 @@
+import { EventTarget } from '../lib/EventTarget/src/EventTarget.js';
 
-class CoordinatesDataProvider {
-    constructor({onFetch}){
-        this._onFetch = onFetch;
+class CoordinatesDataProvider extends EventTarget {
+    constructor(){
+        super();        
         this.showSuggestion = false;        
         this.showOnSelect = false;
         this.showOnEnter = true;
@@ -39,15 +40,15 @@ class CoordinatesDataProvider {
         let g = this._parseCoordinates(value);        
         return new Promise(resolve => {
             let result = {feature: { type: 'Feature', geometry: g, properties: {} }, provider: this, query: value};
-            if (g && typeof this._onFetch === 'function'){
-                this._onFetch(result);
+            if (g) {
+                let event = document.createEvent('Event');
+                event.initEvent('fetch', false, false);
+                event.detail = result;
+                this.dispatchEvent(event);
             }             
             resolve(g ? [result] : []);
         });
     }
 }
-
-window.nsGmx = window.nsGmx || {};
-window.nsGmx.CoordinatesDataProvider = CoordinatesDataProvider;
 
 export { CoordinatesDataProvider };

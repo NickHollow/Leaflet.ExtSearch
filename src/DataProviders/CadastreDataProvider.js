@@ -1,12 +1,14 @@
-class CadastreDataProvider {
-    constructor({serverBase, tolerance, onFetch}){
+import { EventTarget } from '../lib/EventTarget/src/EventTarget.js';
+
+class CadastreDataProvider extends EventTarget {
+    constructor({serverBase, tolerance}){
+        super();
         this._serverBase = serverBase;        
-        this._tolerance = tolerance;
-        this._onFetch = onFetch;
+        this._tolerance = tolerance;        
         this.showSuggestion = true;
         this.showOnSelect = false;
         this.showOnEnter = true;
-        this._cadastreLayers = [			
+        this._cadastreLayers = [
 			{id: 1, title: 'Участок', 	reg: /^\d\d:\d+:\d+:\d+$/},
 			{id: 2, title: 'Квартал',	reg: /^\d\d:\d+:\d+$/},
 			{id: 3, title: 'Район', 	reg: /^\d\d:\d+$/},
@@ -87,10 +89,12 @@ class CadastreDataProvider {
                 fetch (req, init)
                 .then(response => response.json())
                 .then(json => {
-                    if(json.status === 200){
-                        if (typeof this._onFetch === 'function'){
-                            this._onFetch(json);
-                        }
+                    if(json.status === 200) {
+                        let event = document.createEvent('Event');
+                        event.initEvent('fetch', false, false);
+                        event.detail = json;
+                        this.dispatchEvent(event);
+                        
                         let rs = json.features.map(x => {
                             return {
                                 name: x.attrs.name || x.attrs.cn || x.attrs.id,
@@ -114,8 +118,5 @@ class CadastreDataProvider {
         });
     }
 }
-
-window.nsGmx = window.nsGmx || {};
-window.nsGmx.CadastreDataProvider = CadastreDataProvider;
 
 export { CadastreDataProvider };

@@ -1,8 +1,10 @@
 
-class OsmDataProvider {
-    constructor({serverBase, onFetch}){
-        this._serverBase = serverBase;
-        this._onFetch = onFetch;        
+import { EventTarget } from '../lib/EventTarget/src/EventTarget.js';
+
+class OsmDataProvider extends EventTarget {
+    constructor({serverBase}){
+        super();
+        this._serverBase = serverBase;             
         this.showSuggestion = true;    
         this.showOnSelect = true;
         this.showOnEnter = true;
@@ -71,9 +73,10 @@ class OsmDataProvider {
                             query: obj,
                         };
                     });
-                    if (typeof this._onFetch === 'function'){
-                        this._onFetch(rs);
-                    }                
+                    let event = document.createEvent('Event');
+                    event.initEvent('fetch', false, false);
+                    event.detail = rs;
+                    this.dispatchEvent(event);
                     resolve(rs);
                 }
                 else {
@@ -83,71 +86,77 @@ class OsmDataProvider {
             .catch(response => reject(response));
         });
     }
-    find(value, limit, strong, retrieveGeometry){
-        const _strong = Boolean(strong) ? 1 : 0;
-        const _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1; 
-        const query = `WrapStyle=None&RequestType=SearchObject&IsStrongSearch=${_strong}&WithoutGeometry=${_withoutGeometry}&UseOSM=1&Limit=${limit}&SearchString=${encodeURIComponent(value)}`;        
-        let req = new Request(`${this._serverBase}/SearchObject/SearchAddress.ashx?${query}${this._key}`);
-        let headers = new Headers();
-        headers.append('Content-Type','application/json');        
-        let init = {
-            method: 'GET',
-            mode: 'cors', 
-            credentials: 'include',
-            cache: 'default',
-        };
+    find(value, limit, strong, retrieveGeometry){                
         return new Promise((resolve, reject) => {
-            fetch (req, init)
-            .then(response => response.json())
-            .then(json => {                
-                if(json.Status === 'ok'){                    
-                    const rs = json.Result
-                    .reduce((a,x) => a.concat(x.SearchResult), [])
-                    .map(x => {
-                        if (retrieveGeometry && x.Geometry) {
-                            let g = this._convertGeometry (x.Geometry);
-                            let props = Object.keys(x)
-                            .filter(k => k !== 'Geometry')
-                            .reduce((a,k) => {
-                                a[k] = x[k];
-                                return a;
-                            }, {});
-                            return {
-                                name: x.ObjNameShort,
-                                feature: {
-                                    type: 'Feature',
-                                    geometry: g,
-                                    properties: props,                            
-                                },
-                                properties: props,
-                                provider: this,
-                                query: value,
-                            };
+            if (value || value.trim()) {
+                const _strong = Boolean(strong) ? 1 : 0;
+                const _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1; 
+                const query = `WrapStyle=None&RequestType=SearchObject&IsStrongSearch=${_strong}&WithoutGeometry=${_withoutGeometry}&UseOSM=1&Limit=${limit}&SearchString=${encodeURIComponent(value)}`;        
+                let req = new Request(`${this._serverBase}/SearchObject/SearchAddress.ashx?${query}${this._key}`);
+                let headers = new Headers();
+                headers.append('Content-Type','application/json');        
+                let init = {
+                    method: 'GET',
+                    mode: 'cors', 
+                    credentials: 'include',
+                    cache: 'default',
+                };
+                fetch (req, init)
+                .then(response => response.json())
+                .then(json => {                
+                    if(json.Status === 'ok'){                    
+                        const rs = json.Result
+                        .reduce((a,x) => a.concat(x.SearchResult), [])
+                        .map(x => {
+                            if (retrieveGeometry && x.Geometry) {
+                                let g = this._convertGeometry (x.Geometry);
+                                let props = Object.keys(x)
+                                .filter(k => k !== 'Geometry')
+                                .reduce((a,k) => {
+                                    a[k] = x[k];
+                                    return a;
+                                }, {});
+                                return {
+                                    name: x.ObjNameShort,
+                                    feature: {
+                                        type: 'Feature',
+                                        geometry: g,
+                                        properties: props,                            
+                                    },
+                                    properties: props,
+                                    provider: this,
+                                    query: value,
+                                };
+                            }
+                            else {
+                                return {
+                                    name: x.ObjNameShort,
+                                    properties: x,
+                                    provider: this,
+                                    query: value,
+                                };
+                            }                        
+                        });
+                        if (strong && retrieveGeometry) {                        
+                            let event = document.createEvent('Event');
+                            event.initEvent('fetch', false, false);
+                            event.detail = rs;
+                            this.dispatchEvent(event);
                         }
-                        else {
-                            return {
-                                name: x.ObjNameShort,
-                                properties: x,
-                                provider: this,
-                                query: value,
-                            };
-                        }                        
-                    });
-                    if (typeof this._onFetch === 'function' && strong && retrieveGeometry) {
-                        this._onFetch(rs);
+                        resolve(rs);
                     }
-                    resolve(rs);                    
-                }
-                else {
-                    reject(json);
-                }                
-            })
-            .catch(response => reject(response));
+                    else {
+                        reject(json);
+                    }                
+                })
+                .catch(response => reject(response));
+
+            }
+            else {
+                reject('Empty string');
+            }                        
         });
     }
 }
-
-window.nsGmx = window.nsGmx || {};
-window.nsGmx.OsmDataProvider = OsmDataProvider;
 
 export { OsmDataProvider };
