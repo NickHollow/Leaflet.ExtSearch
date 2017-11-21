@@ -147,7 +147,13 @@ __webpack_require__(8);
 
 var _ResultView = __webpack_require__(7);
 
+var _EventTarget2 = __webpack_require__(0);
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function chain(tasks, state) {
     return tasks.reduce(function (prev, next) {
@@ -157,7 +163,9 @@ function chain(tasks, state) {
     }));
 }
 
-var SearchWidget = function () {
+var SearchWidget = function (_EventTarget) {
+    _inherits(SearchWidget, _EventTarget);
+
     function SearchWidget(container, _ref) {
         var placeHolder = _ref.placeHolder,
             providers = _ref.providers,
@@ -174,48 +182,57 @@ var SearchWidget = function () {
 
         _classCallCheck(this, SearchWidget);
 
-        this._container = container;
-        this._allowSuggestion = true;
-        this._providers = providers;
-        this._suggestionTimeout = suggestionTimeout;
-        this._suggestionLimit = suggestionLimit;
-        this._fuzzySearchLimit = fuzzySearchLimit;
-        this._retrieveManyOnEnter = retrieveManyOnEnter;
-        this._replaceInputOnEnter = replaceInputOnEnter;
+        var _this = _possibleConstructorReturn(this, (SearchWidget.__proto__ || Object.getPrototypeOf(SearchWidget)).call(this));
 
-        this._container.classList.add('leaflet-ext-search');
-        this._container.innerHTML = '<input type="text" value="" placeholder="' + placeHolder + '" /><span class="leaflet-ext-search-button"></span>';
-        this._input = this._container.querySelector('input');
+        _this._container = container;
+        _this._allowSuggestion = true;
+        _this._providers = providers;
+        _this._suggestionTimeout = suggestionTimeout;
+        _this._suggestionLimit = suggestionLimit;
+        _this._fuzzySearchLimit = fuzzySearchLimit;
+        _this._retrieveManyOnEnter = retrieveManyOnEnter;
+        _this._replaceInputOnEnter = replaceInputOnEnter;
 
-        this._handleChange = this._handleChange.bind(this);
-        this._input.addEventListener('input', this._handleChange);
+        _this._container.classList.add('leaflet-ext-search');
+        _this._container.innerHTML = '<input type="text" value="" placeholder="' + placeHolder + '" /><span class="leaflet-ext-search-button"></span>';
+        _this._input = _this._container.querySelector('input');
 
-        this._handleMouseMove = this._handleMouseMove.bind(this);
-        this._input.addEventListener('mousemove', this._handleMouseMove);
-        this._input.addEventListener('dragstart', this._handleMouseMove);
-        this._input.addEventListener('drag', this._handleMouseMove);
+        _this._handleChange = _this._handleChange.bind(_this);
+        _this._input.addEventListener('input', _this._handleChange);
 
-        this._handleSearch = this._handleSearch.bind(this);
+        _this._handleMouseMove = _this._handleMouseMove.bind(_this);
+        _this._input.addEventListener('mousemove', _this._handleMouseMove);
+        _this._input.addEventListener('dragstart', _this._handleMouseMove);
+        _this._input.addEventListener('drag', _this._handleMouseMove);
 
-        this._button = this._container.querySelector('.leaflet-ext-search-button');
-        this._button.addEventListener('click', this._handleSearch);
+        _this._handleSearch = _this._handleSearch.bind(_this);
 
-        this.results = new _ResultView.ResultView({ input: this._input, replaceInput: this._replaceInputOnEnter });
+        _this._button = _this._container.querySelector('.leaflet-ext-search-button');
+        _this._button.addEventListener('click', _this._handleSearch);
 
-        this._search = this._search.bind(this);
-        this._selectItem = this._selectItem.bind(this);
+        _this.results = new _ResultView.ResultView({ input: _this._input, replaceInput: _this._replaceInputOnEnter });
 
-        this.results.addEventListener('suggestions:confirm', this._search);
-        this.results.addEventListener('suggestions:select', this._selectItem);
+        _this._search = _this._search.bind(_this);
+        _this._selectItem = _this._selectItem.bind(_this);
+
+        _this.results.addEventListener('suggestions:confirm', function (e) {
+            var event = document.createEvent('Event');
+            event.initEvent('suggestions:confirm', false, false);
+            event.detail = e.detail;
+            _this.dispatchEvent(event);
+            _this._search(e);
+        });
+        _this.results.addEventListener('suggestions:select', _this._selectItem);
 
         // map.on ('click', this.results.hide.bind(this.results));
         // map.on ('dragstart', this.results.hide.bind(this.results));
+        return _this;
     }
 
     _createClass(SearchWidget, [{
         key: '_suggest',
         value: function _suggest(text) {
-            var _this = this;
+            var _this2 = this;
 
             this.results.allowNavigation = false;
             var tasks = this._providers.filter(function (provider) {
@@ -226,7 +243,7 @@ var SearchWidget = function () {
                         if (state.completed) {
                             resolve(state);
                         } else {
-                            provider.find(text, _this._suggestionLimit, false, false).then(function (response) {
+                            provider.find(text, _this2._suggestionLimit, false, false).then(function (response) {
                                 state.completed = response.length > 0;
                                 state.response = state.response.concat(response);
                                 resolve(state);
@@ -238,23 +255,23 @@ var SearchWidget = function () {
                 };
             });
             chain(tasks, { completed: false, response: [] }).then(function (state) {
-                _this.results.show(state.response, text.trim());
-                _this.results.allowNavigation = true;
+                _this2.results.show(state.response, text.trim());
+                _this2.results.allowNavigation = true;
             });
         }
     }, {
         key: '_handleChange',
         value: function _handleChange(e) {
-            var _this2 = this;
+            var _this3 = this;
 
             if (this._input.value.length) {
                 if (this._allowSuggestion) {
                     this._allowSuggestion = false;
                     this._timer = setTimeout(function () {
-                        clearTimeout(_this2._timer);
-                        _this2._allowSuggestion = true;
-                        var text = _this2._input.value;
-                        _this2._suggest(text);
+                        clearTimeout(_this3._timer);
+                        _this3._allowSuggestion = true;
+                        var text = _this3._input.value;
+                        _this3._suggest(text);
                     }, this._suggestionTimeout);
                 }
             } else {
@@ -270,7 +287,7 @@ var SearchWidget = function () {
     }, {
         key: '_search',
         value: function _search(e) {
-            var _this3 = this;
+            var _this4 = this;
 
             var text = e.detail;
             var tasks = this._providers.filter(function (provider) {
@@ -281,7 +298,7 @@ var SearchWidget = function () {
                         if (state.completed) {
                             resolve(state);
                         } else {
-                            provider.find(text, _this3._retrieveManyOnEnter ? _this3._fuzzySearchLimit : 1, true, true).then(function (response) {
+                            provider.find(text, _this4._retrieveManyOnEnter ? _this4._fuzzySearchLimit : 1, true, true).then(function (response) {
                                 state.completed = response.length > 0;
                                 state.response = state.response.concat(response);
                                 resolve(state);
@@ -330,7 +347,7 @@ var SearchWidget = function () {
     }]);
 
     return SearchWidget;
-}();
+}(_EventTarget2.EventTarget);
 
 exports.SearchWidget = SearchWidget;
 

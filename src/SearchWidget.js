@@ -11,6 +11,7 @@ function chain (tasks, state) {
 
 class SearchWidget extends EventTarget {
     constructor(container, {placeHolder, providers, suggestionTimeout = 1000, suggestionLimit = 10, fuzzySearchLimit = 1000, retrieveManyOnEnter = false, replaceInputOnEnter = false}){
+        super ();
         this._container = container;
         this._allowSuggestion = true;
         this._providers = providers;
@@ -46,7 +47,7 @@ class SearchWidget extends EventTarget {
             let event = document.createEvent('Event');
             event.initEvent('suggestions:confirm', false, false);
             event.detail = e.detail;
-            this.dispatchEvent(event);            
+            this.dispatchEvent(event);
             this._search(e);                        
         });
         this.results.addEventListener('suggestions:select', this._selectItem);
