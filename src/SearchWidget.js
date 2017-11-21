@@ -1,5 +1,6 @@
 import './SearchWidget.css';
 import { ResultView } from './ResultView.js';
+import { EventTarget } from './lib/EventTarget/src/EventTarget.js';
 
 function chain (tasks, state) {
     return tasks.reduce(
@@ -8,7 +9,7 @@ function chain (tasks, state) {
     );
 }
 
-class SearchWidget {
+class SearchWidget extends EventTarget {
     constructor(container, {placeHolder, providers, suggestionTimeout = 1000, suggestionLimit = 10, fuzzySearchLimit = 1000, retrieveManyOnEnter = false, replaceInputOnEnter = false}){
         this._container = container;
         this._allowSuggestion = true;
@@ -41,7 +42,13 @@ class SearchWidget {
         this._search = this._search.bind(this);
         this._selectItem = this._selectItem.bind(this);
 
-        this.results.addEventListener('suggestions:confirm', this._search);
+        this.results.addEventListener('suggestions:confirm', e => {
+            let event = document.createEvent('Event');
+            event.initEvent('suggestions:confirm', false, false);
+            event.detail = e.detail;
+            this.dispatchEvent(event);            
+            this._search(e);                        
+        });
         this.results.addEventListener('suggestions:select', this._selectItem);
 
         // map.on ('click', this.results.hide.bind(this.results));
