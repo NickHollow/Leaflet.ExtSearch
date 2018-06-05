@@ -65,7 +65,7 @@
 #### CoordinatesDataProvider
 
 
-`new nsGmx.CoordinatesDataProvider ()` - задание провайдера поиска по координатам.
+`new nsGmx.CoordinatesDataProvider ()` - создание провайдера поиска по координатам.
 
 #### OsmDataProvider
 
