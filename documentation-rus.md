@@ -1,93 +1,121 @@
 ### Плагин контрола поиска nsGmx.SearchControl
 Позволяет производить поиск объектов. Расширяет [L.Control](http://leafletjs.com/reference.html#control).
 
-#### Creation
+#### Создание
 
-| Factory | Описание |
+| Создание | Описание |
 |---------|:---------|
-| L.control.gmxSearch (`<Options>` options?) | Создание контрола поиска. |
+| nsGmx.SearchControl (`<Options>` options?) | Создание контрола поиска |
 
-#### Options
+#### Oпции
 
 | Свойство | Тип | По умолчанию | Описание |
 |----------|-----|:------------:|:---------|
-| id | `<String>` | search | Идентификатор контрола. |
-|position | `<String>` | `topright` | По умолчанию в правом верхнем углу карты. |
-| placeHolder | `<String>` | `Поиск по кадастру, адресам, координатам` | Подсказка поля ввода поисковой строки. |
-| limit | `<Number>` | 10 | Ограничение количества найденных объектов. |
-| providers | `<Provider[]>` | [] | По умолчанию включаются встроенные провайдеры ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider), [CadastreDataProvider](#CadastreDataProvider)). |
+| id | String | search | Идентификатор контрола. |
+|position | String | `topright` | Положение контрола в одном из углов карты (`topleft`, `topright`, `bottomleft` или `bottomright`) |
+| placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
+| limit | Int | 10 | Ограничение количества выводимых объектов. |
+| providers | Интерфейс | [] | Принудительно включаются встроенные провайдеры ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider), [CadastreDataProvider](#CadastreDataProvider)). |
 
 #### Методы
 
 #### setText
 
-`Leaflet.ExtSearch.SearchControl.setText (value)` - заменяет  содержимое строки поиска
+`nsGmx.SearchControl.setText (value)` - заменяет  содержимое строки поиска.
 
 | Параметр | Возвращает | Тип данных | Описание |  
-|----------|------------|:-----------|----------|
-| Value | this | String | Установка значения поля ввода поисковой строки.|
+|----------|:----------:|:-----------|----------|
+| Value | [] | String | Установка значения поля ввода поисковой строки.|
 
-#### Events
+#### События
 
-`Leaflet.ExtSearch.SearchWidget`
+`nsGmx.SearchControl.SearchWidget`
 
-`suggestions:confirm` - срабатывает при нажатии пользователем "Enter" в строке поиска.
+| Имя | Тип | Описание |
+| --- | -------- |:---------|
+| `suggestions:confirm` | Event | Срабатывает при нажатии пользователем "Enter" в строке поиска. |
 
-| Type | Property | Description |
-| ---- | -------- |:------------|
-| detail | `<Event>` | Текущий текст в строке поиска. |
+#### Event
 
-### Provider
+| Параметр | Описание |
+| -------- |:---------|
+| `detail` | Текущий текст в строке поиска |
 
-`Leaflet.ExtSearch.OsmDataProvider` - объект поискового провайдера OSM.
+`new.nsGmx.SearchControl.SearchWidget(container, <Options> options)`
 
-Должен обладать следующими свойствами.
-#### Options
+
+#### Опции
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|-----|:-------------|:---------|
+| placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
+| provider | Интерфейс | [] | Принудительно включаются встроенные провайдеры ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider), [CadastreDataProvider](#CadastreDataProvider)). |
+| suggestionTimeout | Int | 1000 | Задержка вывода списка при вводе поисковой строки в миллисекундах |
+| fuzzySearchLimit | Int | 1000 | Ограничение количества возвращаемых результатов при нечетком поиске |
+| retrieveManyOnEnter | Bool | false | Считать нажатие "Enter" командой поиска |
+| replaceInputOnEnter  | Bool | false | Заменять содержимое строки поиска описанием найденного объекта |
+
+
+### Провайдеры
+
+Возможно подключение следующих провайдеров: [CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider), [CadastreDataProvider](#CadastreDataProvider)
+
+
+
+#### CoordinatesDataProvider
+
+
+`new nsGmx.CoordinatesDataProvider ()` - задание провайдера поиска по координатам.
+
+#### OsmDataProvider
+
+`nsGmx.SearchControl.OsmDataProvider ()` - объект поискового провайдера OSM.
+
+#### Опции поискового провайдера OSM
 
 | Свойство | Тип | По умолчанию | Описание |
 |----------|-----|:------------:|:-----------
-| id| `<String>` | search | Идентификатор контрола. |
-| showSuggestion | `<Bool>` | false | Показывать список подсказок |
-| showOnSelect | `<Bool>` | false | Показывать объект при выделении в списке |
+| id| String | search | Идентификатор контрола. |
+| showSuggestion | Bool | false | Показывать список подсказок |
+| showOnSelect | Bool | false | Показывать объект при выделении в списке |
 
-#### Events
+#### События поискового провайдера OSM
 
-`fetch {detail} detail` - массив найденных объектов типа detail
 
-| Type | Property | Description |
-| ---- | -------- |:-----------|
-| feature | `<Event>` |Метаданные найденного объекта в формате GeoJSON. |
-| provider | `<Event>` | Ссылка на провайдер `(Leaflet.ExtSearch.OsmDataProvide)` |
-| query | `<Event>` | Поисковый объект |
+| Имя | Тип | Описание |
+| --- | --- |:---------|
+| fetch  | Event | Сообщение провайдером результата поискового запроса пользователя |
+
+### Event
+
+| Свойство | Описание |
+| --- | -------- |
+| detail  | Массив найденных провайдером  объектов  |
+
+| Параметр | Описание |
+| --- | --- |:---------|
+| feature |  Метаданные найденного объекта в формате GeoJSON |
+| provider | Ссылка на провайдер `(nsGmx.SearchControl.OsmDataProvide)` |
+| query | Поисковый объект |
 
 
 #### Методы
 
 #### Find
-`Leaflet.ExtSearch.Provider.find(value, limit, strong, retrieveGeometry)` - выполняет поиск введённых в строку объектов.
+`nsGmx.SearchControl.Provider.find(value, limit, strong, retrieveGeometry)` - выполняет поиск введённых в строку объектов.
 
 | Параметр | Возвращает | Тип данных | Описание | Значение по умолчанию |
 |----------|------------|------------|:---------|-----------------------|
-| value | `this` | String | Поисковая строка | - |
+| value | `this` | String | Поисковая строка | [] |
 | limit | `this` | Int | Количество элементов, возвращаемых провайдером при поиске | 10 |
 | strong | `this` | Bool | Строгий поиск объектов | false |
 | retrieveGeometry | `this` | Bool | Возвращает геометрию объектов | false |
 
 #### Fetch
-`Leaflet.ExtSearch.Provider.fetch (obj)` - возвращает искомый объект со всеми метаданными.
+`nsGmx.SearchControl.Provider.fetch (obj)` - возвращает искомый объект со всеми метаданными.
 
 | Параметр | Возвращает | Тип данных | Описание | Значение по умолчанию |
 |----------|------------|------------|:---------|-----------------------|
-| obj | `this` | Object | Объект поиска. | Null |
+| obj | `this` | Object | Объект поиска | Null |
 
-
-### CoordinatesDataProvider
-
-Провайдер координатного поиска.
-
-| Параметр | Тип | Описание |
-|--------|:---:|:-----------|
-| id | `<UInt>` | Идентификатор объекта. |
-| properties | `<attribute[]>` | Массив атрибутов (первый элемент - id объекта, последний - геометрия части объекта). |
-| dataOption | `<Object>` | Дополнительная информация. |
-| item | `<Object>` | Дополнительная информация объекта. |
+Имеется возможность реализовать собственный провайдер, указав соответствующие методы (`Find` и `Fetch`)
