@@ -10,12 +10,12 @@
 #### Oпции
 
 | Свойство | Тип | По умолчанию | Описание |
-|----------|-----|:------------:|:---------|
+|----------|:---:|:------------:|:---------|
 | id | String | search | Идентификатор контрола. |
 |position | String | `topright` | Положение контрола в одном из углов карты (`topleft`, `topright`, `bottomleft` или `bottomright`) |
 | placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
 | limit | Int | 10 | Ограничение количества выводимых объектов. |
-| providers | Интерфейс | [] | Принудительно включаются встроенные провайдеры ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider), [CadastreDataProvider](#CadastreDataProvider)). |
+| providers | массив объектов типа `Provider` | [] | Список поставщиков данных для поиска ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider)). |
 
 #### Методы
 
@@ -41,7 +41,7 @@
 | -------- |:---------|
 | `detail` | Текущий текст в строке поиска |
 
-`new.nsGmx.SearchControl.SearchWidget(container, <Options> options)`
+`new nsGmx.SearchControl.SearchWidget(container, <Options> options)`
 
 
 #### Опции
