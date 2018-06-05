@@ -22,5 +22,5 @@ map.addControl(searchControl);
 ```
 - `<String> placeHolder` - default input text
 - `<String> position` - leaflet control corner
-- `<Number> limit` - suggestion rows limit
+- `<Int> limit` - suggestion rows limit
 - `<Object>[] providers` - suggestion providers
