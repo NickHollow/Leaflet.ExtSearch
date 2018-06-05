@@ -49,7 +49,7 @@
 | Свойство | Тип | По умолчанию | Описание |
 |----------|-----|:-------------|:---------|
 | placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
-| provider | Интерфейс | [] | Принудительно включаются встроенные провайдеры ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider), [CadastreDataProvider](#CadastreDataProvider)). |
+| provider | Интерфейс | [] | Принудительно включаются встроенные провайдеры ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider)). |
 | suggestionTimeout | Int | 1000 | Задержка вывода списка при вводе поисковой строки в миллисекундах |
 | fuzzySearchLimit | Int | 1000 | Ограничение количества возвращаемых результатов при нечетком поиске |
 | retrieveManyOnEnter | Bool | false | Считать нажатие "Enter" командой поиска |
@@ -58,7 +58,7 @@
 
 ### Провайдеры
 
-Возможно подключение следующих провайдеров: [CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider), [CadastreDataProvider](#CadastreDataProvider)
+Возможно подключение следующих провайдеров: [CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider).
 
 
 
