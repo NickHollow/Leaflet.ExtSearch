@@ -93,6 +93,7 @@
 Возможно подключение следующих провайдеров: [CoordinatesDataProvider](#pr), [OsmDataProvider](#pr).
 
 <br/>
+
 #### CoordinatesDataProvider
 
 
