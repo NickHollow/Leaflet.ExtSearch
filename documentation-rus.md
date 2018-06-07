@@ -17,7 +17,7 @@
 |position | String | `topright` | Положение контрола в одном из углов карты (`topleft`, `topright`, `bottomleft` или `bottomright`) |
 | placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
 | limit | Int | 10 | Ограничение количества выводимых объектов. |
-| providers | массив объектов типа [`Provider`](#pr) | [] | Список поставщиков данных для поиска ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider)). |  
+| providers | массив объектов типа [`Provider`](#pr) | [] | Список поставщиков данных для поиска ([CoordinatesDataProvider](#pr), [OsmDataProvider](#pr)). |  
 <br/>
 
 #### Методы
@@ -29,7 +29,7 @@
 | Параметр | Возвращает | Тип данных | Описание |  
 |----------|:----------:|:-----------|----------|
 | Value | - | String | Ввод текста в поле поисковой строки |
-<br/>
+
 
 #### setText
 
@@ -90,7 +90,7 @@
 | showSuggestion | Bool | false | Показывать список подсказок |
 | showOnSelect | Bool | false | Показывать объект при выделении в списке |
 
-Возможно подключение следующих провайдеров: [CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider).
+Возможно подключение следующих провайдеров: [CoordinatesDataProvider](#pr), [OsmDataProvider](#pr).
 
 <br/>
 #### CoordinatesDataProvider
