@@ -122,8 +122,17 @@ container - элемент, в который помещается SearchWidget.
 
 #### Создание поискового провайдера OSM
 
-##### `new nsGmx.SearchControl.OsmDataProvider (serverBase)`
+##### `new nsGmx.SearchControl.OsmDataProvider (<OsmDataProviderOptions> options)`
+
 <br/>
+
+#### `<OsmDataProviderOptions>``
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|-----|:------------:|:---------|
+| serverBaseOptions | String | - | URL-адрес геомиксера |
+
+#### Свойства провайдера
 
 | Свойство | Тип | По умолчанию | Описание |
 |----------|-----|:------------:|:---------|
@@ -146,9 +155,9 @@ container - элемент, в который помещается SearchWidget.
 
 #### OsmDataProviderResult
 
-| Свойство | Описание |
-| -------- | -------- |
-| feature |  Метаданные найденного объекта в формате [GeoJSON](https://tools.ietf.org/html/rfc7946#page-11) |
-| provider | Ссылка на провайдер |
-| query | Поисковый объект, который возвращается провайдером |
+| Свойство | Тип | Описание |
+| -------- | --- | -------- |
+| feature | GeoJSonFeature | Метаданные найденного объекта в формате [GeoJSON](https://tools.ietf.org/html/rfc7946#page-11) |
+| provider | provider | Ссылка на провайдер |
+| query | object | Поисковый объект, который возвращается провайдером |
 <br/>
