@@ -1,5 +1,7 @@
-### Плагин контрола поиска nsGmx.SearchControl
-Позволяет производить поиск объектов. Расширяет [L.Control](http://leafletjs.com/reference.html#control).
+### Плагин контрола поиска
+
+### nsGmx.SearchControl
+Позволяет производить поиск объектов и размещать их на карте. Расширяет [L.Control](http://leafletjs.com/reference.html#control).
 
 #### Создание
 
@@ -15,7 +17,8 @@
 |position | String | `topright` | Положение контрола в одном из углов карты (`topleft`, `topright`, `bottomleft` или `bottomright`) |
 | placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
 | limit | Int | 10 | Ограничение количества выводимых объектов. |
-| providers | массив объектов типа `Provider` | [] | Список поставщиков данных для поиска ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider)). |
+| providers | массив объектов типа [`Provider`](#pr) | [] | Список поставщиков данных для поиска ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider)). |  
+<br/>
 
 #### Методы
 
@@ -25,7 +28,8 @@
 
 | Параметр | Возвращает | Тип данных | Описание |  
 |----------|:----------:|:-----------|----------|
-| Value | [] | String | Ввод текста в поле поисковой строки |
+| Value | - | String | Ввод текста в поле поисковой строки |
+<br/>
 
 #### setText
 
@@ -33,11 +37,30 @@
 
 | Параметр | Возвращает | Тип данных | Описание |  
 |----------|:----------:|:-----------|----------|
-| Value | [] | String | Установка значения поля ввода поисковой строки. |
+| Value | - | String | Установка значения поля ввода поисковой строки. |
+<br/>
+
+### nsGmx.SearchWidget
+
+#### Создание
+
+`new nsGmx.SearchWidget(container, <Options> options)`
+
+#### Опции
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|-----|:-------------|:---------|
+| placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
+| providers | массив объектов типа [`Provider`](#pr) | [] | Список поставщиков данных для поиска ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider)). |
+| suggestionTimeout | Int | 1000 | Задержка вывода списка при вводе поисковой строки в миллисекундах |
+| fuzzySearchLimit | Int | 1000 | Ограничение количества возвращаемых результатов при нечетком поиске |
+| retrieveManyOnEnter | Bool | false | Считать нажатие "Enter" командой поиска |
+| replaceInputOnEnter  | Bool | false | Заменять содержимое строки поиска описанием найденного объекта |
+<br/>
 
 #### События
 
-`nsGmx.SearchControl.SearchWidget`
+`nsGmx.SearchWidget`
 
 | Имя | Тип | Описание |
 | --- | -------- |:---------|
@@ -45,48 +68,42 @@
 
 #### Event
 
-| Параметр | Описание |
+| Свойство | Описание |
 | -------- |:---------|
 | `detail` | Текущий текст в строке поиска |
 
-`new nsGmx.SearchControl.SearchWidget(container, <Options> options)`
 
-
-#### Опции
-
-| Свойство | Тип | По умолчанию | Описание |
-|----------|-----|:-------------|:---------|
-| placeHolder | String | Поиск по кадастру, адресам, координатам | Подсказка поля ввода поисковой строки. |
-| providers | массив объектов типа `Provider` | [] | Список поставщиков данных для поиска ([CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider)). |
-| suggestionTimeout | Int | 1000 | Задержка вывода списка при вводе поисковой строки в миллисекундах |
-| fuzzySearchLimit | Int | 1000 | Ограничение количества возвращаемых результатов при нечетком поиске |
-| retrieveManyOnEnter | Bool | false | Считать нажатие "Enter" командой поиска |
-| replaceInputOnEnter  | Bool | false | Заменять содержимое строки поиска описанием найденного объекта |
 
 `SearchControl` и `SearchWidget` - объекты одного иерархического уровня. Но `SearchWidget` в отличие от `SearchControl` не наследует никаких свойств и может быть помещен в отдельный контейнер.
 
-### Провайдеры
+<br/>
+
+### <a name="pr">`Провайдеры`</a>
+
+Это интерфейс, который должен обладать следующими свойствами.
+
+#### Опции поискового провайдера
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|-----|:------------:|:---------|
+| showOnEnter| Bool | false | Поиск объекта, который показывается на карте |
+| showSuggestion | Bool | false | Показывать список подсказок |
+| showOnSelect | Bool | false | Показывать объект при выделении в списке |
 
 Возможно подключение следующих провайдеров: [CoordinatesDataProvider](#CoordinatesDataProvider), [OsmDataProvider](#OsmDataProvider).
 
-
-
+<br/>
 #### CoordinatesDataProvider
 
 
 `new nsGmx.CoordinatesDataProvider ()` - создание провайдера поиска по координатам.
 
+<br/>
+
 #### OsmDataProvider
 
-`nsGmx.SearchControl.OsmDataProvider ()` - объект поискового провайдера OSM.
-
-#### Опции поискового провайдера OSM
-
-| Свойство | Тип | По умолчанию | Описание |
-|----------|-----|:------------:|:-----------
-| id| String | search | Идентификатор контрола. |
-| showSuggestion | Bool | false | Показывать список подсказок |
-| showOnSelect | Bool | false | Показывать объект при выделении в списке |
+`new nsGmx.SearchControl.OsmDataProvider (serverBase)` - создание поискового провайдера OSM.
+<br/>
 
 #### События поискового провайдера OSM
 
@@ -107,7 +124,7 @@
 | feature |  Метаданные найденного объекта в формате GeoJSON |
 | provider | Ссылка на провайдер `(nsGmx.SearchControl.OsmDataProvide)` |
 | query | Поисковый объект |
-
+<br/>
 
 #### Методы
 
