@@ -126,7 +126,7 @@ container - элемент, в который помещается SearchWidget.
 
 <br/>
 
-#### `<OsmDataProviderOptions>`
+#### OsmDataProviderOptions
 
 | Свойство | Тип | По умолчанию | Описание |
 |----------|-----|:------------:|:---------|
