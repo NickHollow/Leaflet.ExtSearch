@@ -1,5 +1,5 @@
 
-import { EventTarget } from '../lib/EventTarget/src/EventTarget.js';
+import EventTarget from 'scanex-event-target';
 
 class OsmDataProvider extends EventTarget {
     constructor({serverBase}){
@@ -159,4 +159,4 @@ class OsmDataProvider extends EventTarget {
     }
 }
 
-export { OsmDataProvider };
+export default OsmDataProvider;

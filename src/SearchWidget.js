@@ -1,6 +1,6 @@
 import './SearchWidget.css';
-import { ResultView } from './ResultView.js';
-import { EventTarget } from './lib/EventTarget/src/EventTarget.js';
+import ResultView from './ResultView.js';
+import EventTarget from 'scanex-event-target';
 
 function chain (tasks, state) {
     return tasks.reduce(
@@ -160,4 +160,4 @@ class SearchWidget extends EventTarget {
     }
 }
 
-export { SearchWidget };
+export default SearchWidget;

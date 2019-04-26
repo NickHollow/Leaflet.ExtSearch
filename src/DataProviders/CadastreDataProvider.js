@@ -1,4 +1,4 @@
-import { EventTarget } from '../lib/EventTarget/src/EventTarget.js';
+import EventTarget from 'scanex-event-target';
 
 class CadastreDataProvider extends EventTarget {
     constructor({serverBase, tolerance}){
@@ -119,4 +119,4 @@ class CadastreDataProvider extends EventTarget {
     }
 }
 
-export { CadastreDataProvider };
+export default CadastreDataProvider;

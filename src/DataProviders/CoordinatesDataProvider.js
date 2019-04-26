@@ -1,4 +1,4 @@
-import { EventTarget } from '../lib/EventTarget/src/EventTarget.js';
+import EventTarget from 'scanex-event-target';
 
 class CoordinatesDataProvider extends EventTarget {
     constructor(){
@@ -51,4 +51,4 @@ class CoordinatesDataProvider extends EventTarget {
     }
 }
 
-export { CoordinatesDataProvider };
+export default CoordinatesDataProvider;

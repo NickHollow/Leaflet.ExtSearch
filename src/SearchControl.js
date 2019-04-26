@@ -1,4 +1,4 @@
-import { SearchWidget } from './SearchWidget.js';
+import SearchWidget from './SearchWidget.js';
 
 let SearchControl = L.Control.extend({
     includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
@@ -52,4 +52,4 @@ let SearchControl = L.Control.extend({
     },
 });
 
-export { SearchControl };
+export default SearchControl;

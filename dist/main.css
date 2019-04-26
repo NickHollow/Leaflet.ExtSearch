@@ -67,10 +67,8 @@
     float: right;
     cursor: pointer;  
     border-style: none;
-    background-image: url(62a4b2267c8e68c12f3c496a489e5b5c.png);
+    background-image: url('search-input-field.png');
     background-repeat: no-repeat;
     background-position: center;
 }
 
-
-/*# sourceMappingURL=bundle.css.map*/

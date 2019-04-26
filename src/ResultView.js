@@ -1,4 +1,4 @@
-import { EventTarget } from './lib/EventTarget/src/EventTarget.js';
+import EventTarget from 'scanex-event-target';
 
 class ResultView extends EventTarget {
     constructor({input, replaceInput = false}){
@@ -238,4 +238,4 @@ class ResultView extends EventTarget {
     }
 }
 
-export { ResultView };
+export default ResultView;

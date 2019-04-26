@@ -25,4 +25,4 @@ class GmxRenderer {
     }
 }
 
-export { GmxRenderer };
+export default GmxRenderer;
